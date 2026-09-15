@@ -16,7 +16,8 @@
     }
   },
   "icon": {
-    "png256": "Resources/GDC/gdc-firewall-icon.png"
+    "svg": "macOS/GDCFirewall/Resources/AppIcon.svg",
+    "png256": "macOS/GDCFirewall/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png"
   },
   "localization": [
     "ro"

@@ -25,6 +25,12 @@ Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
   Update Checker pe `update.json` + self-updater (Regulile 13, 18, 20).
 - `docs/` pentru GitHub Pages pe `gordas.dev/gdc-firewall`.
 
+### Added (continuare)
+- Pictograma aplicației: sursă vectorială unică `Resources/AppIcon.svg`
+  (scut geometric amber/cupru pe placă închisă, aceeași glifă ca antetul
+  paginii de prezentare), plus `scripts/make-appicon.sh` care o exportă în
+  toate dimensiunile macOS și scrie `Contents.json` din aceeași listă.
+
 ### Changed
 - **Corecție de arhitectură**, după citirea sursei LuLu v4.5.1: puntea XPC a
   fost rescrisă pe contractul real (`XPCDaemonProto.h` / `XPCUserProto.h`).
