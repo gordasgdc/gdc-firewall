@@ -18,11 +18,16 @@ final class ProcessCatalog {
     private let entries: [String: Entry]
 
     private init() {
-        // `Bundle.module` e locul real al resursei într-un pachet SPM;
-        // `Bundle.main` e fallback-ul pentru cazul în care dicționarul e
-        // copiat direct în `Contents/Resources` de scriptul de ambalare.
+        // Aceleași surse, două ambalaje. În pachetul SPM (harnașamentul de
+        // dezvoltare a interfeței) resursa stă în `Bundle.module`; în ținta
+        // Xcode integrată cu motorul, `Bundle.module` nici nu există ca
+        // simbol, deci verificarea trebuie făcută la compilare, nu la rulare.
+        #if SWIFT_PACKAGE
         let url = Bundle.module.url(forResource: "ProcessDictionary", withExtension: "json")
             ?? Bundle.main.url(forResource: "ProcessDictionary", withExtension: "json")
+        #else
+        let url = Bundle.main.url(forResource: "ProcessDictionary", withExtension: "json")
+        #endif
         guard let url,
               let data = try? Data(contentsOf: url),
               let payload = try? JSONDecoder().decode(Payload.self, from: data) else {

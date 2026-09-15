@@ -11,11 +11,61 @@ final class UpdateChecker {
     private let updateURL = URL(string: "https://gordas.dev/gdc-firewall/update.json")!
     private let dismissedKey = "GDCFirewall.dismissedUpdateVersion"
 
+    /// Manifestul servit de gordas.dev.
+    ///
+    /// Produsul are DOUĂ componente care se învechesc independent: interfața
+    /// GDC și motorul de filtrare. De aceea manifestul poartă două versiuni,
+    /// nu una.
+    ///
+    /// `version` rămâne în fișier PENTRU TOTDEAUNA, chiar dacă `app_version`
+    /// îl înlocuiește (Regula 35): orice client deja publicat care îl
+    /// decodează ca obligatoriu ar eșua TĂCUT dacă dispare, și ar rămâne
+    /// blocat pe „ești la zi” fără nicio cale de ieșire.
     private struct UpdateInfo: Decodable {
-        let version: String
+        let version: String?              // moștenit, sinonim cu app_version
+        let appVersion: String?
+        let engineVersionRequired: String?
         let changes: String?
-        let download_url: [String: String]
+        let downloadURL: [String: String]
         let mandatory: Bool
+
+        enum CodingKeys: String, CodingKey {
+            case version
+            case appVersion = "app_version"
+            case engineVersionRequired = "engine_version_required"
+            case changes
+            case downloadURL = "download_url"
+            case mandatory
+        }
+
+        /// Versiunea interfeței, oricare dintre cele două chei ar purta-o.
+        var effectiveAppVersion: String { appVersion ?? version ?? "0.0.0" }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            version = try c.decodeIfPresent(String.self, forKey: .version)
+            appVersion = try c.decodeIfPresent(String.self, forKey: .appVersion)
+            engineVersionRequired = try c.decodeIfPresent(String.self, forKey: .engineVersionRequired)
+            changes = try c.decodeIfPresent(String.self, forKey: .changes)
+            mandatory = try c.decodeIfPresent(Bool.self, forKey: .mandatory) ?? false
+
+            // `download_url` a fost și string simplu, și dicționar per
+            // platformă. Decodăm tolerant ambele forme: un manifest scris
+            // altfel decât ne așteptam nu trebuie să blocheze actualizările.
+            if let dict = try? c.decode([String: String].self, forKey: .downloadURL) {
+                downloadURL = dict
+            } else if let single = try? c.decode(String.self, forKey: .downloadURL) {
+                downloadURL = ["mac": single]
+            } else {
+                downloadURL = [:]
+            }
+        }
+    }
+
+    /// De ce anume se oferă actualizarea. Determină textul pop-up-ului.
+    private enum UpdateReason {
+        case newInterface          // A — versiune nouă de interfață
+        case engineUnsupported     // B — motorul local nu mai e susținut
     }
 
     /// BUG REAL găsit 2026-08-26: `fetch` întorcea `nil` la orice eșec
@@ -40,13 +90,43 @@ final class UpdateChecker {
         }
     }
 
+    /// Actualizarea se oferă în DOUĂ cazuri independente (SAU, nu ȘI):
+    ///
+    ///   A. interfața locală e mai veche decât `app_version` de pe server;
+    ///   B. motorul cu care e construită aplicația e sub
+    ///      `engine_version_required` — adică rulează un filtru pe care
+    ///      autorii lui nu-l mai susțin.
+    ///
+    /// Cazul B e cel care justifică toată structura: interfața poate fi
+    /// perfect la zi în timp ce motorul de sub ea are o gaură cunoscută, iar
+    /// un update checker care se uită doar la versiunea aplicației n-ar
+    /// semnala niciodată asta.
+    private func reason(for info: UpdateInfo) -> UpdateReason? {
+        if let required = info.engineVersionRequired,
+           Self.semVerCompare(required, LuLu.engineVersion) > 0 {
+            // B are prioritate la afișare: e o problemă de securitate, nu
+            // o noutate de interfață.
+            return .engineUnsupported
+        }
+        if isNewer(info.effectiveAppVersion) { return .newInterface }
+        return nil
+    }
+
     func checkAtLaunch() {
         fetch { [weak self] result in
             guard let self, case .success(let info) = result else { return }
-            guard self.isNewer(info.version) else { return }
+            guard let reason = self.reason(for: info) else { return }
+
+            // Un motor nesusținut reapare la fiecare lansare, ca `mandatory`:
+            // nu se poate închide o dată și uita, fiindcă protecția chiar e
+            // degradată până la actualizare.
+            if reason == .engineUnsupported || info.mandatory {
+                self.presentPopup(info, reason: reason)
+                return
+            }
             let dismissed = UserDefaults.standard.string(forKey: self.dismissedKey)
-            if info.mandatory || dismissed != info.version {
-                self.presentPopup(info)
+            if dismissed != info.effectiveAppVersion {
+                self.presentPopup(info, reason: reason)
             }
         }
     }
@@ -58,8 +138,8 @@ final class UpdateChecker {
             case .failure(let error):
                 self.presentCheckFailedAlert(error)
             case .success(let info):
-                if self.isNewer(info.version) {
-                    self.presentPopup(info)
+                if let reason = self.reason(for: info) {
+                    self.presentPopup(info, reason: reason)
                 } else {
                     self.presentUpToDateAlert()
                 }
@@ -134,19 +214,38 @@ final class UpdateChecker {
     /// "Actualizează acum" deschidea `.pkg`-ul în browser (fișier descărcat,
     /// dar userul tot vedea un tab de download) — acum descarcă+instalează
     /// direct, prin SelfUpdater, fără NICIODATĂ să atingă un browser.
-    private func presentPopup(_ info: UpdateInfo) {
+    private func presentPopup(_ info: UpdateInfo, reason: UpdateReason) {
         let alert = NSAlert()
-        alert.messageText = "Versiune nouă disponibilă: \(info.version)"
-        alert.informativeText = (info.changes ?? "") + "\n\nApasă „Actualizează acum” pentru a descărca și instala automat."
+
+        switch reason {
+        case .newInterface:
+            alert.messageText = "Versiune nouă disponibilă: \(info.effectiveAppVersion)"
+            alert.informativeText = (info.changes ?? "")
+                + "\n\nApasă „Actualizează acum” pentru a descărca și instala automat."
+        case .engineUnsupported:
+            alert.alertStyle = .critical
+            alert.messageText = "Actualizare critică de securitate"
+            // Mesajul apare în limba sistemului, nu în română forțat: cine
+            // rulează un motor de filtrare nesusținut trebuie să înțeleagă
+            // avertismentul, chiar dacă nu citește română.
+            alert.informativeText = L10n.engineUpdateRequired()
+                + "\n\nMotor instalat: \(LuLu.engineVersion)"
+                + " · minim susținut: \(info.engineVersionRequired ?? "—")"
+        }
+
         alert.addButton(withTitle: "Actualizează acum")
-        if !info.mandatory {
+        // „Mai târziu” dispare la un motor nesusținut și la update obligatoriu:
+        // butonul ar sugera că amânarea e o opțiune fără consecințe.
+        if !info.mandatory && reason != .engineUnsupported {
             alert.addButton(withTitle: "Mai târziu")
         }
+
         let response = alert.runModal()
-        if response == .alertFirstButtonReturn, let urlString = info.download_url["mac"], let url = URL(string: urlString) {
-            Task { await SelfUpdater.downloadAndInstall(pkgURL: url, version: info.version) }
+        if response == .alertFirstButtonReturn,
+           let urlString = info.downloadURL["mac"], let url = URL(string: urlString) {
+            Task { await SelfUpdater.downloadAndInstall(pkgURL: url, version: info.effectiveAppVersion) }
         } else {
-            UserDefaults.standard.set(info.version, forKey: dismissedKey)
+            UserDefaults.standard.set(info.effectiveAppVersion, forKey: dismissedKey)
         }
     }
 

@@ -5,6 +5,15 @@ import Foundation
 /// din care vine, ca o actualizare de motor să poată fi verificată rând cu
 /// rând. `scripts/fetch-engine.sh` oprește build-ul dacă tag-ul diferă.
 enum LuLu {
+    /// Versiunea motorului cu care e construită ACEASTĂ aplicație.
+    ///
+    /// E sursa de adevăr pentru jumătatea „motor” a verificării de
+    /// actualizări: serverul anunță în `update.json` versiunea minimă de
+    /// motor încă susținută, iar clientul se compară cu valoarea de aici.
+    /// `scripts/fetch-engine.sh` verifică la fiecare build că e identică cu
+    /// tag-ul clonat — altfel aplicația ar raporta un motor pe care nu-l are.
+    static let engineVersion = "4.5.1"
+
     /// consts.h:81 — `DAEMON_MACH_SERVICE`.
     ///
     /// Prefixul e Team ID-ul celui care semnează daemon-ul, nu un text
