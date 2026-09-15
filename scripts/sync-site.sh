@@ -53,6 +53,18 @@ fi
 mkdir -p "$SITE_DIR"
 cp "$ROOT/docs/index.html" "$SITE_DIR/index.html"
 
+# Arhiva de distributie, ca aplicatia sa fie descarcabila si direct de pe
+# gordas.dev (si vizibila prin GDC Plugin Manager), nu doar de pe release.
+# Ambele nume, mereu (Regula 17): cel versionat, ca sa se stie ce ai pe disc,
+# si cel stabil, fiindca un link fix are nevoie de un nume care nu se schimba.
+ZIP="$ROOT/dist/GDCFirewall-macOS-$APP_VERSION.zip"
+if [ -f "$ZIP" ]; then
+  cp "$ZIP" "$SITE_DIR/GDCFirewall-macOS-$APP_VERSION.zip"
+  cp "$ZIP" "$SITE_DIR/GDCFirewall-macOS.zip"
+else
+  echo "→ ⚠️  $ZIP lipseste — ruleaza intai ./scripts/build_app.sh."
+fi
+
 python3 - "$ROOT/docs/update.json" "$SITE_DIR/update.json" "$APP_VERSION" "$ENGINE_VERSION" <<'PY'
 import json, pathlib, sys
 src, dst, app_version, engine_version = sys.argv[1:5]
