@@ -1,0 +1,28 @@
+{
+  "$schema": "https://gdc.internal/schemas/plugin-manifest-v1.json",
+  "name": "GDC Firewall",
+  "publisher": "GDC",
+  "version": "0.1.0",
+  "description": "Firewall pentru macOS în limba română, pentru utilizatori non-tehnici. Alerte cu semafor, aprobare inteligentă și filtrare de domenii.",
+  "category": "security",
+  "license": "GPL-3.0",
+  "pricing": "free",
+  "platforms": {
+    "macos": {
+      "executable": "Build/macOS/GDC Firewall.app",
+      "minOSVersion": "13.0",
+      "signed": true,
+      "notarized": true
+    }
+  },
+  "icon": {
+    "png256": "Resources/GDC/gdc-firewall-icon.png"
+  },
+  "localization": ["ro"],
+  "buildStage": "alpha",
+  "release": {
+    "channel": "alpha",
+    "checkIntervalHours": 12,
+    "updateManifestPath": "docs/update.json"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "version": "0.1.0",
+  "changes": "Prima versiune publică: alerte cu semafor în română, Mod Silențios, Rules Manager și filtrare de domenii pe liste StevenBlack.",
+  "download_url": {
+    "mac": "https://github.com/gordasgdc/gdc-firewall/releases/latest/download/GDCFirewall.pkg"
+  },
+  "mandatory": false
+}

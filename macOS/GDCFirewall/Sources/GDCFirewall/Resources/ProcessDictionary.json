@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "note": "Mapare locală proces -> explicație în română. Cheia e numele binarului, nu calea: aceleași daemon-uri stau în locuri diferite între versiunile de macOS.",
+  "entries": {
+    "cloudd":          { "name": "Serviciul Apple iCloud", "detail": "Sincronizează fișierele și datele tale cu iCloud." },
+    "mDNSResponder":   { "name": "Serviciul de rețea locală Mac", "detail": "Găsește imprimante, AirPlay și alte dispozitive din rețeaua ta." },
+    "nsurlsessiond":   { "name": "Descărcări în fundal macOS", "detail": "Continuă descărcările pornite de alte aplicații." },
+    "trustd":          { "name": "Verificarea certificatelor de securitate", "detail": "Confirmă că site-urile și aplicațiile sunt cine spun că sunt." },
+    "syspolicyd":      { "name": "Gatekeeper (verificare aplicații)", "detail": "Verifică la Apple dacă o aplicație nou lansată e sigură." },
+    "softwareupdated": { "name": "Actualizări macOS", "detail": "Caută și descarcă actualizările de sistem." },
+    "apsd":            { "name": "Notificări Apple (Push)", "detail": "Aduce notificările din Mesaje, Mail și alte aplicații Apple." },
+    "akd":             { "name": "Autentificare cont Apple", "detail": "Menține sesiunea contului tău Apple activă." },
+    "identityservicesd": { "name": "Mesaje și FaceTime", "detail": "Trimite și primește iMessage și apeluri FaceTime." },
+    "timed":           { "name": "Sincronizarea ceasului", "detail": "Potrivește ora Mac-ului după serverele de timp." },
+    "rapportd":        { "name": "Continuitate (Handoff / AirDrop)", "detail": "Leagă Mac-ul de iPhone și iPad pentru AirDrop și Handoff." },
+    "netbiosd":        { "name": "Partajare de fișiere Windows", "detail": "Vede foldere partajate de calculatoare Windows din rețea." },
+    "sharingd":        { "name": "Partajare (AirDrop, Ecran)", "detail": "Pornește AirDrop și partajarea ecranului." },
+    "com.apple.geod":  { "name": "Servicii de localizare Apple", "detail": "Aduce hărți și date de localizare." },
+    "Spotlight":       { "name": "Căutare Spotlight", "detail": "Aduce sugestii din internet în căutarea Spotlight." },
+    "Resolve":         { "name": "DaVinci Resolve", "detail": "Verifică licența și actualizările Blackmagic." },
+    "ssh":             { "name": "Conexiune la distanță (SSH)", "detail": "Deschide o sesiune de terminal către alt calculator." },
+    "curl":            { "name": "Descărcare din linia de comandă", "detail": "Un script sau un terminal descarcă ceva de pe internet." },
+    "python3":         { "name": "Script Python", "detail": "Un script Python încearcă să iasă pe internet. Aprobă-l doar dacă știi ce script e." },
+    "node":            { "name": "Aplicație Node.js", "detail": "Un program Node.js (deseori un server local sau o unealtă de dezvoltare)." }
+  }
+}

@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+dist/
+Build/
+*.xcuserdatad
+Engine/LuLu/
+# Certificatele stau in ~/Developer/Certificates/, niciodata in repo (Regula 1).
+# Fisierul de entitlements NU e un secret si TREBUIE comis — fara el,
+# build-ul semnat nu poate cere extensia de retea.
+codesigning/*.p12
+codesigning/*.cer
+codesigning/*.p8
+*.p12
+*.cer

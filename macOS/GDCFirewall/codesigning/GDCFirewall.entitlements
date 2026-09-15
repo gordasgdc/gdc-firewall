@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Entitlement-ul de mai jos se acordă DOAR la cerere explicită aprobată
+	  de Apple pe contul Developer. Până atunci, semnarea Developer ID
+	  eșuează cu „profile doesn't support” — e un blocaj de cont, nu de cod.
+	-->
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>content-filter-provider</string>
+	</array>
+	<key>com.apple.developer.system-extension.install</key>
+	<true/>
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+</dict>
+</plist>
