@@ -1062,6 +1062,82 @@ constantele și semnăturile motorului, cu numărul de rând din `consts.h`
 lângă fiecare. La orice urcare de tag, cele două fișiere se verifică manual:
 o semnătură XPC greșită nu dă eroare de compilare, ci crash la runtime.
 
+### Integrarea, aplicată (2026-09-15)
+
+`scripts/integrate-engine.sh` (+ `.rb`, gem `xcodeproj`) rescrie ținta „App”
+a motorului ca ținta GDC Firewall. E script, nu editări făcute o dată:
+`Engine/LuLu/` nu e urmărit de git, deci orice modificare manuală acolo
+dispare la următorul `fetch-engine.sh`. O integrare nereproductibilă nu
+există.
+
+Din ținta App a motorului rămân **trei** fișiere — `Shared/Rule.m`,
+`Shared/signing.m`, `Shared/utilities.m`. Restul (ferestrele, `AppDelegate`,
+`main.m`, `XPCDaemonClient`, `XPCUser`) iese din țintă: e exact interfața pe
+care o înlocuim, iar păstrarea ei ar fi însemnat două UI-uri și două obiecte
+exportate pe XPC, cu daemon-ul alegând unul la întâmplare.
+
+Identitate aplicată: Team ID `8AR6XP8MG7`, bundle `dev.gordas.GDCFirewall`,
+extensie `dev.gordas.GDCFirewall.extension`, serviciu Mach
+`$(TeamIdentifierPrefix)dev.gordas.GDCFirewall`, `SIGNING_AUTH` = certificatul
+GDC. Fără renumire, produsul ar fi rulat sub bundle ID-urile Objective-See și
+n-ar fi putut coexista cu un LuLu real instalat.
+
+**Patru lucruri găsite doar construind**, niciunul presupus:
+
+1. **Versiunea ≥ 2.0.0 e impusă de motor, nu aleasă.**
+   `Extension/XPCListener.m` cere clienților
+   `info [CFBundleShortVersionString] >= "2.0.0"` în cerința de semnătură.
+   Literalul e în extensie, pe care n-o modificăm. Sub 2.0.0, daemon-ul
+   refuză conexiunea fără niciun mesaj util. `integrate-engine.sh` verifică
+   pragul și se oprește sub el.
+2. **`Netiquette.app`** — resursă a țintei App care nici nu există în arhiva
+   clonată; build-ul pica pe ea. Resursele se reduc acum la o listă albă.
+3. **`logHandle`** — global `os_log_t` definit în `App/main.m`, folosit de
+   `Rule.m`. Fără el, linkerul cădea. Îl definește `GDC-EngineGlue.m`, generat.
+4. **`Bundle.module`** nu există în afara SPM — `ProcessCatalog` alege sursa
+   resursei la compilare (`#if SWIFT_PACKAGE`), nu la rulare.
+
+`fetch-engine.sh` nu mai interzice orice diferență față de upstream
+(integrarea îl rescrie intenționat), ci **exact** ce trebuie: orice `.m`/`.h`
+din `LuLu/Extension/`. `Info.plist` și `Extension.entitlements` de acolo sunt
+excepții numite — declarații de identitate, nu comportament. Garda a fost
+testată în ambele sensuri.
+
+`SystemExtensionInstaller.swift` e scris de la zero: activarea extensiei
+trăia în `App/Extension.m`, legată de `AppDelegate`-ul motorului. Starea e
+publicată în interfață, nu înghițită — până la aprobarea din Setări de
+sistem aplicația pare pornită și nu filtrează nimic.
+
+Minimul aplicației urcă la **macOS 13** (motorul țintește 10.15):
+`MenuBarExtra` și scena `Window` cer 13+. Se aplică DOAR pe aplicație;
+extensia rămâne cu ținta ei.
+
+### Actualizare hibridă — interfață + motor (2026-09-15)
+
+Produsul are două componente care se învechesc independent, deci manifestul
+poartă două versiuni. Actualizarea se oferă la **SAU**: interfața locală sub
+`app_version`, SAU motorul local (`LuLu.engineVersion`) sub
+`engine_version_required`.
+
+Al doilea caz justifică toată structura: interfața poate fi perfect la zi în
+timp ce motorul de sub ea are o gaură cunoscută, iar un checker care se uită
+doar la versiunea aplicației n-ar semnala asta niciodată. De aceea pop-up-ul
+de motor nesusținut e `.critical`, reapare la fiecare lansare ca un update
+obligatoriu și **nu are buton „Mai târziu”** — butonul ar sugera că amânarea
+e o opțiune fără consecințe.
+
+Mesajul acela e singurul text din aplicație tradus RO/EN/ES
+(`Localization.swift`): interfața rămâne deliberat doar în română, dar un
+avertisment de securitate trebuie înțeles și de cine nu citește română.
+
+`version` rămâne în `update.json` pentru totdeauna, sinonim cu `app_version`
+(Regula 35). `download_url` se decodează tolerant — și string, și dicționar.
+
+Versiunea motorului circulă prin trei locuri, verificate automat:
+tag-ul clonat → `LuLuConstants.swift` (gardă în `fetch-engine.sh`) →
+`engine_version_required` din manifest (scris de `sync-site.sh` din tag, nu
+tastat).
+
 ### Licență — GPL-3.0, obligatoriu
 
 LuLu e GPL-3.0. Orice produs derivat (inclusiv acest UI, care se leagă de
@@ -1095,6 +1171,12 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-15 — v2.0.0.** Integrare reală în workspace-ul motorului
+  (ambele ținte compilează), actualizare hibridă app/motor, ghid PDF
+  trilingv (9 pagini), documentație de semnare + notarizare. Saltul de la
+  0.1.0 la 2.0.0 e impus de cerința de semnătură a extensiei, nu o decizie
+  de produs. Rămân deschise: entitlement-ul Apple (blocaj de cont) și testul
+  manual pe un Mac real.
 - **2026-09-15 — v0.1.0.** Schelet inițial: strat UI SwiftUI complet
   (alertă semafor, Rules Manager glassmorphic, Auto-Pilot, temă, update
   checker), `docs/` pentru GitHub Pages pe `gordas.dev`, script de

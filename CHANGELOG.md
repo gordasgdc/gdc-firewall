@@ -2,6 +2,34 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.0.0 (2026-09-15) — Integrare cu motorul, actualizare hibridă, ghid trilingv
+
+### Added
+- Integrare reală în workspace-ul motorului: `scripts/integrate-engine.sh`
+  rescrie ținta „App” ca ținta GDC Firewall. Ambele ținte compilează.
+- Activarea extensiei de sistem, cu stare vizibilă în interfață
+  (`SystemExtensionInstaller.swift`).
+- Actualizare hibridă: manifestul poartă `app_version` și
+  `engine_version_required`; actualizarea se oferă dacă oricare dintre ele
+  e depășită. Motorul nesusținut produce un pop-up critic, fără „Mai târziu”.
+- Mesajul de actualizare critică, tradus RO/EN/ES (`Localization.swift`).
+- `installer/generate_pdf.py` — ghid trilingv de 9 pagini, cu pasul critic
+  de aprobare a extensiei de rețea explicat în toate cele trei limbi.
+- `codesigning/sign-and-notarize.sh`, `README-notarizare.md` (checklist) și
+  `apple-entitlement-request.md` (textele pentru formularul Apple).
+
+### Changed
+- **Versiunea sare de la 0.1.0 la 2.0.0.** Nu e o decizie de produs:
+  `Extension/XPCListener.m` acceptă doar clienți cu
+  `CFBundleShortVersionString >= 2.0.0`, iar extensia nu se modifică.
+- Minimul aplicației urcă la macOS 13 (`MenuBarExtra`, scena `Window`).
+  Extensia rămâne cu ținta ei originală.
+- `fetch-engine.sh` verifică acum exact ce trebuie — orice `.m`/`.h` din
+  `Extension/` — în loc de orice diferență față de upstream.
+
+### Fixed
+- `Bundle.module` nu există în afara SPM; resursa se rezolvă la compilare.
+
 ## v0.1.0 (2026-09-15) — Schelet inițial
 
 ### Added

@@ -62,10 +62,11 @@ else
 fi
 
 if [ -n "${APPLE_SIGN_IDENTITY_APP:-}" ]; then
-  echo "→ Semnare Developer ID + entitlements NetworkExtension…"
-  codesign --force --options runtime --timestamp \
-    --entitlements "$ENTITLEMENTS" \
-    -s "$APPLE_SIGN_IDENTITY_APP" "$APP_PATH"
+  # Delegat, nu făcut aici: o aplicație cu extensie de sistem are DOUĂ
+  # bundle-uri cu entitlements diferite, semnate dinăuntru spre afară.
+  # Vezi codesigning/sign-and-notarize.sh pentru de ce `--deep` e greșit aici.
+  echo "→ Semnare Developer ID (aplicație + extensie de sistem)…"
+  "$PKG_DIR/codesigning/sign-and-notarize.sh" app "$APP_PATH"
   SIGNED="developer-id"
 else
   echo "→ Semnare ad-hoc (setează APPLE_SIGN_IDENTITY_APP pentru semnare reală)…"
