@@ -25,6 +25,16 @@ Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
   Update Checker pe `update.json` + self-updater (Regulile 13, 18, 20).
 - `docs/` pentru GitHub Pages pe `gordas.dev/gdc-firewall`.
 
+### Changed
+- **Corecție de arhitectură**, după citirea sursei LuLu v4.5.1: puntea XPC a
+  fost rescrisă pe contractul real (`XPCDaemonProto.h` / `XPCUserProto.h`).
+  Alertele sosesc prin `alertShow:reply:` (daemon → aplicație), nu sunt
+  cerute; `getRules:` întoarce o arhivă de obiecte `Rule`, nu dicționare;
+  serviciul Mach e prefixat cu Team ID. Consecință: aplicația se
+  construiește ca înlocuitor al țintei `LuLu/App`, nu ca aplicație separată
+  lângă un LuLu oficial — vezi CLAUDE.md, Partea 2.
+- Tag-ul motorului fixat la `v4.5.1` (`v2.9.0` nu există în upstream).
+
 ### Notes
 - Paritatea Mac/Windows (Regula 31) nu se aplică: produsul e legat
   structural de NetworkExtension pe macOS.

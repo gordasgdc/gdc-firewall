@@ -1027,8 +1027,40 @@ care vorbește cu daemon-ul LuLu prin XPC-ul lui existent.
 **Interzis să atingi**: `Engine/LuLu/LuLu/Extension/**` (NetworkExtension /
 `NEFilterDataProvider`), logica de kernel/socket, `Engine/LuLu/LuLu/Helper/**`.
 Orice nevoie de comportament nou se rezolvă în stratul GDC (`macOS/GDCFirewall`),
-nu în motor. `scripts/fetch-engine.sh` clonează motorul la un tag fix și
-verifică, la fiecare build, că nu există modificări locale în el.
+nu în motor. `scripts/fetch-engine.sh` clonează motorul la un tag fix
+(**v4.5.1**) și verifică, la fiecare build, că nu există modificări locale.
+
+### Modelul de integrare — CORECȚIE 2026-09-15
+
+Presupunerea inițială (aplicație GDC separată, care vorbește prin XPC cu un
+LuLu oficial instalat de utilizator) e **invalidată**, după citirea sursei
+la v4.5.1. Trei motive, toate verificate în cod, niciunul ocolibil:
+
+1. **Serviciul Mach e prefixat cu Team ID.** `consts.h:81` —
+   `DAEMON_MACH_SERVICE = @"VBG97UB4TA.com.objective-see.lulu"`. macOS
+   refuză conexiunea dacă aplicația care se conectează nu e semnată cu
+   același Team ID. O aplicație semnată GDC **nu poate** vorbi cu un daemon
+   semnat Objective-See.
+2. **`getRules:` întoarce `NSData`**, o arhivă `NSKeyedArchiver` de obiecte
+   `Rule` — clasă Objective-C a motorului. Fără clasa aia în runtime,
+   dezarhivarea eșuează.
+3. **Alertele vin invers.** Daemon-ul ne apelează pe noi prin
+   `XPCUserProtocol.alertShow:reply:` (`XPCUserProto.h`), cu un bloc de
+   răspuns care trebuie apelat exact o dată. Nu există nicio metodă
+   „alertReply" pe daemon.
+
+**Modelul corect:** GDC Firewall înlocuiește ținta `LuLu/App` din
+workspace-ul motorului, păstrând `LuLu/Extension/**` și `LuLu/Helper/**`
+neatinse. Team ID-ul din `consts.h` devine cel GDC — asta e o schimbare de
+identitate de semnare, NU o schimbare a logicii de filtrare, deci nu încalcă
+regula „motorul e intangibil". Pachetul SPM din `macOS/GDCFirewall/` rămâne
+harnașamentul de dezvoltare a interfeței (compilează și rulează singur,
+fără motor); integrarea finală îl linkează cu sursele motorului.
+
+`Engine/LuLuConstants.swift` și `Engine/XPCProtocols.swift` oglindesc
+constantele și semnăturile motorului, cu numărul de rând din `consts.h`
+lângă fiecare. La orice urcare de tag, cele două fișiere se verifică manual:
+o semnătură XPC greșită nu dă eroare de compilare, ci crash la runtime.
 
 ### Licență — GPL-3.0, obligatoriu
 

@@ -3,6 +3,7 @@ import Foundation
 /// Acțiunea unei reguli. Valorile brute corespund 1:1 constantelor
 /// `RULE_STATE_*` din motorul LuLu — modelul GDC le traduce, nu le redefinește.
 enum RuleAction: Int, Codable {
+    // Valorile sunt RULE_STATE_BLOCK / RULE_STATE_ALLOW (consts.h:87-90).
     case block = 0
     case allow = 1
 
@@ -46,6 +47,7 @@ enum RuleCategory: String, Codable, CaseIterable, Identifiable {
 /// motorul o ține — singurul câmp care trebuie să rămână identic cu motorul.
 struct FirewallRule: Identifiable, Codable, Hashable {
     let id: String
+    let uuid: String                // uuid-ul regulii din motor
     let enginePath: String          // cale absolută a binarului
     let bundleID: String?
     var friendlyName: String        // nume intuitiv în română
@@ -63,4 +65,40 @@ struct FirewallRule: Identifiable, Codable, Hashable {
 
     /// Numele tehnic, pentru cei care vor să vadă ce rulează de fapt.
     var processName: String { (enginePath as NSString).lastPathComponent }
+
+    /// Construiește regula dintr-un obiect `Rule` al motorului, citit prin
+    /// KVC. Stratul GDC nu redeclară clasa motorului: dacă un câmp dispare
+    /// acolo, aici primim `nil` și sărim regula, în loc să crăpăm.
+    init?(engineRule object: AnyObject, path: String) {
+        guard let uuid = object.value(forKey: "uuid") as? String else { return nil }
+        let name = object.value(forKey: "name") as? String
+        let type = (object.value(forKey: "type") as? NSNumber)?.intValue ?? LuLu.RuleType.default
+        let state = (object.value(forKey: "action") as? NSNumber)?.intValue ?? LuLu.RuleState.block
+        let signing = object.value(forKey: "csInfo") as? [AnyHashable: Any]
+        let signer = (signing?[LuLu.Key.signer] as? Int) ?? LuLu.Signer.none
+
+        self.uuid = uuid
+        // Un binar poate avea mai multe reguli (câte una per endpoint), deci
+        // cheia de identitate în listă e uuid-ul, nu calea.
+        self.id = uuid
+        self.enginePath = path
+        self.bundleID = signing?[LuLu.Key.signingID] as? String
+        self.action = RuleAction(rawValue: state) ?? .block
+        self.isAppleSigned = (type == LuLu.RuleType.apple) || (signer == LuLu.Signer.apple)
+        self.isNotarized = (signer == LuLu.Signer.appStore || signer == LuLu.Signer.devID)
+        self.origin = {
+            switch type {
+            case LuLu.RuleType.user: return .user
+            case LuLu.RuleType.apple: return .autoPilot
+            default: return .baseline
+            }
+        }()
+        self.friendlyName = ProcessCatalog.shared.friendlyName(
+            processName: (path as NSString).lastPathComponent,
+            bundleID: self.bundleID,
+            displayName: name
+        )
+        self.lastConnection = nil
+        self.connectionCount = 0
+    }
 }

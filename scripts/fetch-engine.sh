@@ -8,7 +8,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENGINE_DIR="$REPO_ROOT/Engine/LuLu"
 ENGINE_URL="https://github.com/objective-see/LuLu.git"
-ENGINE_TAG="v2.9.0"
+ENGINE_TAG="v4.5.1"
 
 if [[ ! -d "$ENGINE_DIR/.git" ]]; then
   echo "→ Clonez motorul LuLu ($ENGINE_TAG)…"

@@ -26,8 +26,14 @@ Gratuit, fără licențiere, fără cont. Sursă publică, GPL-3.0.
 ## Motor
 
 Filtrarea propriu-zisă e făcută de [LuLu](https://github.com/objective-see/LuLu)
-(© Objective-See), vendorat neschimbat în `Engine/LuLu/`. Stratul GDC nu
-atinge extensia de rețea și nu conține logică de kernel — vezi `NOTICE.md`.
+v4.5.1 (© Objective-See), vendorat în `Engine/LuLu/`. Stratul GDC nu atinge
+extensia de rețea și nu conține logică de kernel — vezi `NOTICE.md`.
+
+GDC Firewall înlocuiește interfața motorului (ținta `LuLu/App`), păstrând
+extensia și helper-ul neschimbate. Nu e o aplicație separată care se
+conectează la un LuLu instalat oficial: serviciul Mach al daemon-ului e
+prefixat cu Team ID-ul celui care l-a semnat, deci clientul și daemon-ul
+trebuie semnate de același cont.
 
 ## Construire
 

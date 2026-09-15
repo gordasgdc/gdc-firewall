@@ -1,75 +1,110 @@
 import Foundation
 import os.log
 
-/// Protocolul XPC expus de daemon-ul LuLu. E declarat aici DOAR ca să-l
-/// putem apela din Swift — semnăturile trebuie să rămână identice cu cele
-/// din motor (`Engine/LuLu/LuLu/Daemon/XPCDaemonProtocol.h`). Dacă motorul
-/// se actualizează la un tag nou, `scripts/fetch-engine.sh` semnalează
-/// diferența; adaptarea se face AICI, niciodată în motor.
-@objc protocol EngineDaemonProtocol {
-    func getPreferences(reply: @escaping ([String: Any]) -> Void)
-    func updatePreferences(_ preferences: [String: Any])
-    func getRules(reply: @escaping ([[String: Any]]) -> Void)
-    func addRule(_ info: [String: Any])
-    func deleteRule(_ path: String)
-    func alertReply(_ reply: [String: Any])
-}
-
-/// Adaptor între interfața GDC și motor. Tot ce trece pe aici e traducere
-/// de date — niciun pic de logică de filtrare nu trăiește în stratul GDC.
-final class DaemonBridge: NSObject, ObservableObject {
+/// Puntea dintre interfața GDC și daemon-ul LuLu.
+///
+/// Legătura e BIDIRECȚIONALĂ, nu „cerem și primim”: noi apelăm
+/// `XPCDaemonProtocol` pentru reguli și preferințe, iar daemon-ul ne
+/// apelează pe noi prin `XPCUserProtocol` când apare o conexiune nouă.
+/// De-asta clasa exportă un obiect, nu doar consumă unul.
+///
+/// Tot ce trece pe aici e traducere de date. Nicio decizie de filtrare nu
+/// trăiește în stratul GDC — ea rămâne în extensia de rețea, neatinsă.
+final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
     static let shared = DaemonBridge()
 
-    private let machServiceName = "com.objective-see.lulu"
     private let log = Logger(subsystem: "dev.gordas.GDCFirewall", category: "bridge")
 
     @Published private(set) var rules: [FirewallRule] = []
     @Published private(set) var isConnected = false
+    @Published private(set) var lastError: String?
+
+    /// Alertele în așteptare. Interfața o arată pe prima; restul stau la
+    /// coadă, ca utilizatorul să nu primească un teanc de ferestre.
+    @Published private(set) var pendingAlerts: [ConnectionRequest] = []
+
+    /// Domenii oprite de blocklist în sesiunea curentă — jurnal pentru
+    /// Rules Manager, cu opțiunea de a le trece pe lista de excepții.
+    @Published private(set) var blockedByList: Set<String> = []
 
     private var connection: NSXPCConnection?
 
-    /// Alertele sosite de la motor, în ordinea în care au venit. UI-ul
-    /// afișează prima din coadă; restul așteaptă, ca să nu îngropăm
-    /// utilizatorul sub ferestre suprapuse.
-    @Published private(set) var pendingAlerts: [ConnectionRequest] = []
+    /// Blocurile de răspuns, ținute pe `uuid`-ul alertei. Fiecare TREBUIE
+    /// apelat exact o dată: dacă pierdem blocul, extensia ține conexiunea
+    /// de rețea suspendată până expiră, iar utilizatorul vede „internetul
+    /// nu merge”, fără nicio fereastră care să explice de ce.
+    private var replies: [String: ([AnyHashable: Any]) -> Void] = [:]
 
     private override init() { super.init() }
 
     // MARK: - Conexiune
 
     func connect() {
-        let conn = NSXPCConnection(machServiceName: machServiceName, options: .privileged)
-        conn.remoteObjectInterface = NSXPCInterface(with: EngineDaemonProtocol.self)
+        let conn = NSXPCConnection(machServiceName: LuLu.daemonMachService, options: [])
+        conn.remoteObjectInterface = NSXPCInterface(with: XPCDaemonProtocol.self)
+
+        // Obiectul exportat e cel prin care daemon-ul ne trimite alertele.
+        conn.exportedInterface = NSXPCInterface(with: XPCUserProtocol.self)
+        conn.exportedObject = self
+
+        // O conexiune XPC care eșuează la lookup e invalidată DEFINITIV și
+        // nu se reconectează singură (vezi comentariul din
+        // `XPCDaemonClient.m`, metoda `reconnect`). O aruncăm și facem una
+        // nouă, nu încercăm s-o reînviem.
         conn.invalidationHandler = { [weak self] in
-            DispatchQueue.main.async { self?.isConnected = false }
+            DispatchQueue.main.async {
+                self?.connection = nil
+                self?.isConnected = false
+            }
         }
         conn.interruptionHandler = { [weak self] in
             DispatchQueue.main.async { self?.isConnected = false }
         }
+
         conn.resume()
         connection = conn
-        isConnected = true
-        reloadRules()
+
+        proxy?.checkIn { [weak self] ready in
+            DispatchQueue.main.async {
+                self?.isConnected = ready
+                if ready { self?.reloadRules() }
+            }
+        }
     }
 
-    private var proxy: EngineDaemonProtocol? {
+    func reconnect() {
+        connection?.invalidate()
+        connection = nil
+        connect()
+    }
+
+    private var proxy: XPCDaemonProtocol? {
         connection?.remoteObjectProxyWithErrorHandler { [weak self] error in
-            self?.log.error("XPC a eșuat: \(error.localizedDescription, privacy: .public)")
-            DispatchQueue.main.async { self?.isConnected = false }
-        } as? EngineDaemonProtocol
+            DispatchQueue.main.async {
+                self?.lastError = error.localizedDescription
+                self?.isConnected = false
+            }
+        } as? XPCDaemonProtocol
     }
 
     // MARK: - Reguli
 
     func reloadRules() {
-        proxy?.getRules { [weak self] raw in
-            let mapped = raw.compactMap(Self.rule(from:))
-            DispatchQueue.main.async { self?.rules = mapped }
+        proxy?.getRules { [weak self] archived in
+            let decoded = Self.decodeRules(archived)
+            DispatchQueue.main.async { self?.rules = decoded }
         }
     }
 
     func setAction(_ action: RuleAction, for rule: FirewallRule) {
-        proxy?.addRule(["path": rule.enginePath, "action": action.rawValue])
+        proxy?.addRule([
+            LuLu.Key.path: rule.enginePath,
+            LuLu.Key.action: action.rawValue,
+            LuLu.Key.type: LuLu.RuleType.user,
+            LuLu.Key.scope: LuLu.ActionScope.process,
+            LuLu.Key.duration: LuLu.Duration.always,
+            LuLu.Key.userID: Int(getuid())
+        ])
         if let index = rules.firstIndex(of: rule) {
             rules[index].action = action
             rules[index].origin = .user
@@ -77,35 +112,54 @@ final class DaemonBridge: NSObject, ObservableObject {
     }
 
     func delete(_ rule: FirewallRule) {
-        proxy?.deleteRule(rule.enginePath)
+        // `deleteRule` cere ȘI cheia (calea), ȘI uuid-ul regulii — a doua
+        // fiindcă un singur binar poate avea mai multe reguli, câte una per
+        // endpoint. Ștergerea „pe cale” ar șterge prima găsită, la nimereală.
+        proxy?.deleteRule(rule.enginePath, rule: rule.uuid)
         rules.removeAll { $0.id == rule.id }
+    }
+
+    // MARK: - XPCUserProtocol (daemon-ul ne apelează pe noi)
+
+    func rulesChanged() {
+        DispatchQueue.main.async { [weak self] in self?.reloadRules() }
+    }
+
+    func alertShow(_ alert: [AnyHashable: Any], reply: @escaping ([AnyHashable: Any]) -> Void) {
+        guard let request = ConnectionRequest(alert: alert) else {
+            // Un dicționar pe care nu-l înțelegem NU se abandonează tăcut:
+            // blocul de răspuns trebuie apelat, altfel conexiunea rămâne
+            // suspendată. Îl lăsăm să treacă și logăm — un firewall care
+            // taie internetul din cauza unui câmp lipsă e mai rău decât unul
+            // care ratează o alertă.
+            log.error("Alertă neinterpretabilă: \(String(describing: alert), privacy: .public)")
+            var response = alert
+            response[LuLu.Key.action] = LuLu.RuleState.allow
+            response[LuLu.Key.duration] = LuLu.Duration.once
+            reply(response)
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.replies[request.uuid] = reply
+            self.enqueue(request)
+        }
     }
 
     // MARK: - Alerte
 
-    /// Trimite verdictul înapoi motorului și, dacă e cazul, întreabă de reguli.
-    func submit(_ verdict: AlertVerdict) {
-        proxy?.alertReply([
-            "path": verdict.request.path,
-            "pid": Int(verdict.request.processID),
-            "action": verdict.action.rawValue,
-            "temporary": !verdict.remember
-        ])
-        pendingAlerts.removeAll { $0.id == verdict.request.id }
-        if verdict.remember { reloadRules() }
-    }
-
-    func enqueue(_ request: ConnectionRequest) {
+    private func enqueue(_ request: ConnectionRequest) {
         // Ordinea contează. Blocklist-ul e PRIMUL, înaintea Auto-Pilot:
         // altfel un proces semnat Apple (aprobat tăcut) ar putea suna un
         // domeniu de telemetrie aflat pe listă, adică exact cazul pe care
         // nivelul „Minim” există să-l prindă.
         if BlocklistStore.shared.isBlocked(request.remoteHost) {
             blockedByList.insert(request.remoteHost)
-            submit(AlertVerdict(request: request, action: .block, remember: false, origin: .baseline))
+            // Scope `endpoint`, nu `process`: blocăm destinația, nu aplicația.
+            submit(AlertVerdict(request: request, action: .block, remember: false, origin: .baseline), scope: LuLu.ActionScope.endpoint)
             return
         }
-        // Auto-Pilot răspunde înainte ca alerta să ajungă vreodată pe ecran.
         if let verdict = AutoPilot.shared.verdict(for: request) {
             submit(verdict)
             return
@@ -113,32 +167,64 @@ final class DaemonBridge: NSObject, ObservableObject {
         pendingAlerts.append(request)
     }
 
-    /// Domenii oprite de listă în sesiunea curentă — apar în Rules Manager
-    /// ca jurnal, cu opțiunea de a le trece pe lista de excepții.
-    @Published private(set) var blockedByList: Set<String> = []
+    /// Trimite verdictul înapoi motorului. Răspunsul e o COPIE a alertei
+    /// primite, îmbogățită — exact cum face aplicația originală: dicționarul
+    /// poartă câmpuri interne pe care noi nu le citim, dar motorul le
+    /// așteaptă înapoi neschimbate.
+    func submit(_ verdict: AlertVerdict, scope: Int = LuLu.ActionScope.process) {
+        let request = verdict.request
+        defer {
+            pendingAlerts.removeAll { $0.id == request.id }
+            replies[request.uuid] = nil
+        }
+        guard let reply = replies[request.uuid] else {
+            log.error("Verdict fără bloc de răspuns pentru \(request.uuid, privacy: .public)")
+            return
+        }
 
-    // MARK: - Traducere
+        var response = request.rawAlert
+        response[LuLu.Key.type] = LuLu.RuleType.user
+        response[LuLu.Key.userID] = Int(getuid())
+        response[LuLu.Key.action] = verdict.action.rawValue
+        response[LuLu.Key.scope] = scope
+        response[LuLu.Key.duration] = verdict.remember ? LuLu.Duration.always : LuLu.Duration.once
+        response[LuLu.Key.endpointAddr] = request.remoteAddress
 
-    private static func rule(from raw: [String: Any]) -> FirewallRule? {
-        guard let path = raw["path"] as? String else { return nil }
-        let bundleID = raw["bundleID"] as? String
-        let name = raw["name"] as? String
-        let appleSigned = raw["isApple"] as? Bool ?? false
-        return FirewallRule(
-            id: path,
-            enginePath: path,
-            bundleID: bundleID,
-            friendlyName: ProcessCatalog.shared.friendlyName(
-                processName: (path as NSString).lastPathComponent,
-                bundleID: bundleID,
-                displayName: name
-            ),
-            action: RuleAction(rawValue: raw["action"] as? Int ?? 0) ?? .block,
-            origin: RuleOrigin(rawValue: raw["origin"] as? Int ?? 0) ?? .user,
-            isAppleSigned: appleSigned,
-            isNotarized: raw["isNotarized"] as? Bool ?? appleSigned,
-            lastConnection: (raw["lastSeen"] as? Double).map { Date(timeIntervalSince1970: $0) },
-            connectionCount: raw["count"] as? Int ?? 0
-        )
+        reply(response)
+        if verdict.remember { reloadRules() }
+    }
+
+    func allowFromBlocklist(_ host: String) {
+        BlocklistStore.shared.allow(host)
+        blockedByList.remove(host)
+    }
+
+    // MARK: - Traducere reguli
+
+    /// Arhiva conține obiecte `Rule` — clasă Objective-C a motorului. Le
+    /// citim prin KVC, nu prin cast: stratul GDC nu redeclară clasa
+    /// motorului, ca o schimbare de câmp acolo să nu devină un crash aici.
+    ///
+    /// Funcționează doar când binarul e linkat împreună cu motorul (vezi
+    /// modelul de integrare din CLAUDE.md, Partea 2). Rulat din pachetul
+    /// SPM de dezvoltare a interfeței, `Rule` nu există în runtime, iar
+    /// dezarhivarea eșuează — pe bună dreptate, și o spunem explicit.
+    private static func decodeRules(_ archived: Data) -> [FirewallRule] {
+        guard !archived.isEmpty else { return [] }
+        let allowed: [AnyClass] = [
+            NSDictionary.self, NSArray.self, NSString.self,
+            NSNumber.self, NSSet.self, NSDate.self
+        ] + (NSClassFromString("Rule").map { [$0] } ?? [])
+
+        guard let root = try? NSKeyedUnarchiver.unarchivedObject(
+            ofClasses: allowed, from: archived
+        ) as? [String: Any] else { return [] }
+
+        // Structura e { cale: [Rule, Rule, …] } — mai multe reguli per binar,
+        // câte una per endpoint.
+        return root.flatMap { path, value -> [FirewallRule] in
+            guard let objects = value as? [AnyObject] else { return [] }
+            return objects.compactMap { FirewallRule(engineRule: $0, path: path) }
+        }
     }
 }
