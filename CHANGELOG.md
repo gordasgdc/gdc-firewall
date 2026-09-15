@@ -29,6 +29,10 @@ Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
 ### Fixed
 - `Bundle.module` nu există în afara SPM; resursa se rezolvă la compilare.
+- Lista de surse a țintei Xcode e un instantaneu luat la integrare: un fișier
+  Swift nou nu intră singur în ea, iar `swift build` rămâne verde fiindcă el
+  vede folderul, nu proiectul. `scripts/verify-engine-build.sh` reintegrează
+  înainte de fiecare verificare, ca drift-ul să nu mai poată apărea.
 
 ## v0.1.0 (2026-09-15) — Schelet inițial
 

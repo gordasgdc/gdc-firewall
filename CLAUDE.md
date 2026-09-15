@@ -1112,6 +1112,15 @@ Minimul aplicației urcă la **macOS 13** (motorul țintește 10.15):
 `MenuBarExtra` și scena `Window` cer 13+. Se aplică DOAR pe aplicație;
 extensia rămâne cu ținta ei.
 
+**Capcană confirmată, nu teoretică:** lista de surse a țintei Xcode e un
+INSTANTANEU luat la integrare. Un fișier Swift nou adăugat după aceea nu
+intră singur în țintă, iar `swift build` rămâne verde fiindcă SPM vede
+folderul, nu proiectul — drift-ul e invizibil până la primul build Release,
+unde apare „cannot find 'X' in scope” într-un fișier tocmai scris. S-a
+întâmplat exact așa cu `Localization.swift`. De aceea
+`scripts/verify-engine-build.sh` reintegrează ÎNAINTE de fiecare verificare;
+reintegrarea e idempotentă, deci n-are cost.
+
 ### Actualizare hibridă — interfață + motor (2026-09-15)
 
 Produsul are două componente care se învechesc independent, deci manifestul
