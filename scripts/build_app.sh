@@ -25,7 +25,7 @@ swift build -c release
 BIN_PATH="$PKG_DIR/.build/release/GDCFirewall"
 BUNDLE_PATH="$(find -L "$PKG_DIR/.build/release" -maxdepth 1 -name "*.bundle" | head -n1)"
 
-echo "→ Asamblare $APP_NAME…"
+echo "→ Asamblare ${APP_NAME}…"
 rm -rf "$APP_PATH"
 mkdir -p "$APP_PATH/Contents/MacOS" "$APP_PATH/Contents/Resources"
 
