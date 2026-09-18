@@ -13,7 +13,7 @@ import os.log
 final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
     static let shared = DaemonBridge()
 
-    private let log = Logger(subsystem: "dev.gordas.GDCFirewall", category: "bridge")
+    private let log = DiagnosticLog("bridge")
 
     @Published private(set) var rules: [FirewallRule] = []
     @Published private(set) var isConnected = false
@@ -54,6 +54,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
     // MARK: - Conexiune
 
     func connect() {
+        log.info("Conectare la daemon: \(LuLu.daemonMachService)")
         let conn = NSXPCConnection(machServiceName: LuLu.daemonMachService, options: [])
         conn.remoteObjectInterface = NSXPCInterface(with: XPCDaemonProtocol.self)
 
@@ -66,7 +67,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         // `XPCDaemonClient.m`, metoda `reconnect`). O aruncăm și facem una
         // nouă, nu încercăm s-o reînviem.
         conn.invalidationHandler = { [weak self, weak conn] in
-            self?.log.error("Conexiunea XPC cu daemon-ul a fost invalidată (\(LuLu.daemonMachService, privacy: .public))")
+            self?.log.error("Conexiunea XPC cu daemon-ul a fost invalidată (\(LuLu.daemonMachService))")
             DispatchQueue.main.async {
                 // O conexiune veche, deja înlocuită, nu atinge starea curentă.
                 guard let self, self.connection === conn else { return }
@@ -88,7 +89,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         connection = conn
 
         proxy?.checkIn { [weak self] ready in
-            self?.log.info("checkIn la daemon: \(ready ? "acceptat" : "refuzat", privacy: .public)")
+            self?.log.info("checkIn la daemon: \(ready ? "acceptat" : "refuzat")")
             DispatchQueue.main.async {
                 if ready {
                     self?.reconnectDelay = 2
@@ -128,7 +129,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
 
     private var proxy: XPCDaemonProtocol? {
         connection?.remoteObjectProxyWithErrorHandler { [weak self] error in
-            self?.log.error("Apel XPC eșuat: \(error.localizedDescription, privacy: .public)")
+            self?.log.error("Apel XPC eșuat: \(error.localizedDescription)")
             DispatchQueue.main.async {
                 self?.lastError = error.localizedDescription
                 self?.isConnected = false
@@ -141,11 +142,13 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
     func reloadRules() {
         proxy?.getRules { [weak self] archived in
             let decoded = Self.decodeRules(archived)
+            self?.log.info("Reguli încărcate din motor: \(decoded.count)")
             DispatchQueue.main.async { self?.rules = decoded }
         }
     }
 
     func setAction(_ action: RuleAction, for rule: FirewallRule) {
+        log.info("Regulă schimbată de utilizator: \(rule.enginePath) → \(action == .allow ? "permis" : "blocat")")
         proxy?.addRule([
             LuLu.Key.path: rule.enginePath,
             LuLu.Key.action: action.rawValue,
@@ -164,6 +167,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         // `deleteRule` cere ȘI cheia (calea), ȘI uuid-ul regulii — a doua
         // fiindcă un singur binar poate avea mai multe reguli, câte una per
         // endpoint. Ștergerea „pe cale” ar șterge prima găsită, la nimereală.
+        log.info("Regulă ștearsă: \(rule.enginePath) (\(rule.endpointAddr):\(rule.endpointPort))")
         proxy?.deleteRule(rule.engineKey, rule: rule.uuid)
         rules.removeAll { $0.id == rule.id }
     }
@@ -202,7 +206,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
             // suspendată. Îl lăsăm să treacă și logăm — un firewall care
             // taie internetul din cauza unui câmp lipsă e mai rău decât unul
             // care ratează o alertă.
-            log.error("Alertă neinterpretabilă: \(String(describing: alert), privacy: .public)")
+            log.error("Alertă neinterpretabilă: \(String(describing: alert))")
             var response = alert
             response[LuLu.Key.action] = LuLu.RuleState.allow
             response[LuLu.Key.duration] = LuLu.Duration.once
@@ -210,6 +214,8 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
             return
         }
 
+        log.info("Alertă: \(request.processName) [\(request.path)] → \(request.remoteHost):\(request.remotePort)"
+            + " · risc \(request.risk) · pid \(request.processID)")
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.replies[request.uuid] = reply
@@ -248,7 +254,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
             replies[request.uuid] = nil
         }
         guard let reply = replies[request.uuid] else {
-            log.error("Verdict fără bloc de răspuns pentru \(request.uuid, privacy: .public)")
+            log.error("Verdict fără bloc de răspuns pentru \(request.uuid)")
             return
         }
 
@@ -260,6 +266,8 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         response[LuLu.Key.duration] = verdict.remember ? LuLu.Duration.always : LuLu.Duration.once
         response[LuLu.Key.endpointAddr] = request.remoteAddress
 
+        log.info("Verdict \(verdict.action == .allow ? "PERMIS" : "BLOCAT"): \(request.processName) → \(request.remoteHost):\(request.remotePort)"
+            + " · origine \(verdict.origin) · ține minte: \(verdict.remember ? "da" : "nu")")
         reply(response)
         if verdict.remember { reloadRules() }
     }

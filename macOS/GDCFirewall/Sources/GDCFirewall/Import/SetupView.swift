@@ -162,6 +162,9 @@ struct SetupView: View {
     }
 }
 
+/// `@MainActor`: `Task {}` pornit de aici revine pe firul principal după
+/// `await`, deci fereastra se creează acolo unde AppKit o acceptă.
+@MainActor
 enum FirstRunSetup {
     static let completedKey = "setupCompleted"
 

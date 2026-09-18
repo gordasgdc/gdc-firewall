@@ -31,6 +31,7 @@ rm -rf "$HOME/Library/Caches/$BUNDLE_ID"
 rm -f  "$HOME/Library/Preferences/$BUNDLE_ID.plist"
 rm -rf "$HOME/Library/Saved Application State/$BUNDLE_ID.savedState"
 rm -rf "$HOME/Library/Logs/GDCFirewall"
+rm -f  "$HOME/Library/Logs/GDCFirewall.log" "$HOME/Library/Logs/GDCFirewall.log.1"
 defaults delete "$BUNDLE_ID" 2>/dev/null || true
 
 # 4. Regulile și preferințele motorului — scrise de extensie, ca root.

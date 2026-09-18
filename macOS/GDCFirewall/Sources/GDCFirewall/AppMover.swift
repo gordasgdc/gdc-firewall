@@ -33,7 +33,10 @@ enum AppMover {
         return path.contains("/DerivedData/") || path.contains("/.build/") || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
+    private static let log = DiagnosticLog("appmover")
+
     private static func move() {
+        log.info("Mut aplicația din \(Bundle.main.bundlePath) în /Applications")
         let fm = FileManager.default
         let source = URL(fileURLWithPath: Bundle.main.bundlePath)
         let destinationDir = URL(fileURLWithPath: "/Applications")
@@ -54,6 +57,7 @@ enum AppMover {
             try? fm.trashItem(at: source, resultingItemURL: nil)
             NSApp.terminate(nil)
         } catch {
+            log.error("Mutarea în /Applications a eșuat: \(error.localizedDescription)")
             let alert = NSAlert()
             alert.messageText = L("Mutare eșuată")
             alert.informativeText = L("Nu am putut muta aplicația automat (%@). Mut-o manual în /Applications din Finder.", error.localizedDescription)

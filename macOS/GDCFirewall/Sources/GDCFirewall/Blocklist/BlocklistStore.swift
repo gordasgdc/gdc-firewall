@@ -27,7 +27,7 @@ final class BlocklistStore: ObservableObject {
     private static let updatedKey = "GDCFirewall.blocklist.lastUpdated"
     private static let allowKey = "GDCFirewall.blocklist.allowList"
 
-    private let log = Logger(subsystem: "dev.gordas.GDCFirewall", category: "blocklist")
+    private let log = DiagnosticLog("blocklist")
     private let queue = DispatchQueue(label: "dev.gordas.GDCFirewall.blocklist", qos: .utility)
 
     /// Comutator independent per nivel (cerut explicit), dar aplicat
@@ -140,6 +140,7 @@ final class BlocklistStore: ObservableObject {
                     self.hashes = parsed
                     self.domainCount = parsed.count
                     self.lastUpdated = Date()
+                    self.log.info("Blocklist actualizat: \(parsed.count) domenii")
                     UserDefaults.standard.set(self.lastUpdated, forKey: Self.updatedKey)
                     self.isUpdating = false
                 }
@@ -152,7 +153,7 @@ final class BlocklistStore: ObservableObject {
         DispatchQueue.main.async {
             self.lastError = error
             self.isUpdating = false
-            self.log.error("Actualizare blocklist eșuată: \(error, privacy: .public)")
+            self.log.error("Actualizare blocklist eșuată: \(error)")
         }
     }
 

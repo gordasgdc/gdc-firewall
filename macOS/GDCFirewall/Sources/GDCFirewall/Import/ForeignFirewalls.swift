@@ -46,7 +46,7 @@ struct ForeignFirewall: Identifiable, Equatable {
 }
 
 enum ForeignFirewalls {
-    private static let log = Logger(subsystem: "dev.gordas.GDCFirewall", category: "import")
+    private static let log = DiagnosticLog("import")
 
     static let luluRulesURL = URL(fileURLWithPath: "/Library/Objective-See/LuLu/rules.plist")
     static let littleSnitchCLI = "Contents/Components/littlesnitch"
@@ -130,7 +130,7 @@ struct ImportReport {
 }
 
 enum RuleImporter {
-    private static let log = Logger(subsystem: "dev.gordas.GDCFirewall", category: "import")
+    private static let log = DiagnosticLog("import")
 
     enum ImportError: LocalizedError {
         case unreadable(String)
@@ -203,7 +203,7 @@ enum RuleImporter {
                 add(info, path: path, addr: addr, port: port, action: action, to: &report, seen: &seen)
             }
         }
-        log.info("Import LuLu: \(report.summary, privacy: .public)")
+        log.info("Import LuLu: \(report.summary)")
         return report
     }
 
@@ -310,7 +310,7 @@ enum RuleImporter {
                 add(info, path: path, addr: addr, port: port, action: action, to: &report, seen: &seen)
             }
         }
-        log.info("Import Little Snitch: \(report.summary, privacy: .public)")
+        log.info("Import Little Snitch: \(report.summary)")
         return report
     }
 

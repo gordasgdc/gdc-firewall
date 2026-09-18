@@ -27,9 +27,11 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
         var isProtecting: Bool { self == .active }
     }
 
-    @Published private(set) var state: State = .unknown
+    @Published private(set) var state: State = .unknown {
+        didSet { if state != oldValue { log.info("Stare extensie: \(oldValue) → \(state)") } }
+    }
 
-    private let log = Logger(subsystem: "dev.gordas.GDCFirewall", category: "sysex")
+    private let log = DiagnosticLog("sysex")
 
     private override init() {
         super.init()
@@ -50,6 +52,7 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
     }
 
     func activate() {
+        log.info("Cer activarea extensiei \(extensionBundleID)")
         state = .requesting
         let request = OSSystemExtensionRequest.activationRequest(
             forExtensionWithIdentifier: extensionBundleID,
@@ -67,7 +70,8 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
     func request(_ request: OSSystemExtensionRequest,
                  actionForReplacingExtension existing: OSSystemExtensionProperties,
                  withExtension ext: OSSystemExtensionProperties) -> OSSystemExtensionRequest.ReplacementAction {
-        .replace
+        log.info("Înlocuiesc extensia \(existing.bundleShortVersion) (build \(existing.bundleVersion)) cu \(ext.bundleShortVersion) (build \(ext.bundleVersion))")
+        return .replace
     }
 
     func requestNeedsUserApproval(_ request: OSSystemExtensionRequest) {
@@ -89,7 +93,7 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
     }
 
     func request(_ request: OSSystemExtensionRequest, didFailWithError error: Error) {
-        log.error("Activarea extensiei a eșuat: \(error.localizedDescription, privacy: .public)")
+        log.error("Activarea extensiei a eșuat: \(error.localizedDescription)")
         state = .failed(error.localizedDescription)
     }
 
@@ -172,7 +176,7 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
                 guard let self else { return }
                 let now: State = manager.isEnabled ? .active : .filterOff
                 guard now != self.state else { return }
-                self.log.info("Filtrul a fost \(manager.isEnabled ? "pornit" : "oprit", privacy: .public) din afara aplicației")
+                self.log.info("Filtrul a fost \(manager.isEnabled ? "pornit" : "oprit") din afara aplicației")
                 if now == .active { self.filterEnabled() } else { self.state = now }
             }
         }
@@ -188,7 +192,7 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
     /// Include refuzul utilizatorului la promptul de filtrare — se vede în
     /// meniu, nu doar în log.
     private func filterFailed(_ step: String, _ error: Error) {
-        log.error("Filtrul de rețea: \(step, privacy: .public) a eșuat: \(error.localizedDescription, privacy: .public)")
+        log.error("Filtrul de rețea: \(step) a eșuat: \(error.localizedDescription)")
         state = .failed(error.localizedDescription)
     }
 }

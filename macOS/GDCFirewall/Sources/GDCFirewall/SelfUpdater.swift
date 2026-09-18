@@ -11,6 +11,7 @@ import AppKit
 /// verificat automat — cere interacțiune fizică reală. Verificat
 /// automat doar descărcarea (HTTP 200, fișier integru pe disc).
 enum SelfUpdater {
+    private static let log = DiagnosticLog("selfupdate")
 
     enum UpdateError: LocalizedError {
         case downloadFailed(String)
@@ -40,9 +41,11 @@ enum SelfUpdater {
             let isZip = pkgURL.pathExtension.lowercased() == "zip"
             let downloaded = tempDir.appendingPathComponent("GDCFirewall-\(version).\(isZip ? "zip" : "pkg")")
 
+            log.info("Descarc actualizarea \(version) de la \(pkgURL.absoluteString)")
             progress.setStatus(L("Se descarcă actualizarea…"))
             try await download(from: pkgURL, to: downloaded)
 
+            log.info("Instalez \(version) din \(isZip ? "arhivă .zip" : "pachet .pkg")")
             progress.setStatus(L("Se instalează…"))
             if isZip {
                 let newApp = try await Task.detached { try extractApp(fromZip: downloaded, into: tempDir, expectedVersion: version) }.value
@@ -57,6 +60,7 @@ enum SelfUpdater {
             progress.close()
             NSApp.terminate(nil)
         } catch {
+            log.error("Actualizarea la \(version) a eșuat: \(error.localizedDescription)")
             progress.close()
             presentFailure(error, fallbackURL: releasesPageURLForFallback)
         }

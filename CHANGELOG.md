@@ -2,6 +2,40 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.2.1 (2026-09-18) — Log de diagnostic local (Regulile 25, 39)
+
+### Added
+- `DiagnosticLog`: fiecare eveniment ajunge în unified log (subsistemul
+  `dev.gordas.GDCFirewall`) ȘI în `~/Library/Logs/GDCFirewall.log`, o linie
+  per eveniment (`timestamp NIVEL [categorie] mesaj`), rotire la 5 MB.
+  Nivelul debug intră în fișier doar cu
+  `defaults write dev.gordas.GDCFirewall GDCFirewall.verboseLog -bool true`.
+- Se loghează: pornirea (versiuni, macOS, limbă), stările extensiei și ale
+  filtrului, înlocuirea extensiei, conexiunea XPC și reconectările, fiecare
+  alertă (proces, destinație, risc) și fiecare verdict (permis/blocat,
+  origine), regulile încărcate/schimbate/șterse, importurile, blocklist-ul,
+  actualizarea automată, mutarea în Aplicații.
+- `scripts/logs.sh` — procese, extensie, fișierul de log și motorul de
+  filtrare într-un singur loc; `--follow` pentru urmărire live.
+
+### Fixed
+- **Aplicația cădea la fiecare pornire din v2.1.0** (SIGABRT, NSException în
+  `NSWindow.init`): fereastra de configurare inițială se crea de pe un fir
+  de fundal — `Task {}` pornit dintr-un context fără actor continua după
+  `await` în afara firului principal. `AuxWindowPresenter` și
+  `FirstRunSetup` sunt acum `@MainActor`, deci compilatorul refuză un astfel
+  de apel. Găsit cu logul de diagnostic nou + raportul de crash.
+- Verificarea automată de actualizări de la pornire ignora tăcut eșecurile
+  (Regula 35): acum apar în log ca avertisment.
+- Dezinstalatorul șterge și fișierul de log.
+
+### Verified
+- Importul Little Snitch pe un export `export-model` REAL (2026-09-18, prin
+  promptul de administrator): formatul (lista `rules` la rădăcină) e cel
+  presupus. Rezultat: 41 importate, 9 existente, sărite 576 (aplicații
+  absente), 68 „via”, 19 de intrare, 13 „întreabă”. Numărul de „absente” e
+  mare — de verificat dacă Little Snitch notează unele căi altfel.
+
 ## v2.2.0 (2026-09-18) — Interfață RO/EN/ES, ghid PDF generat din Swift
 
 ### Added

@@ -1,8 +1,8 @@
 {
-  "version": "2.2.0",
-  "app_version": "2.2.0",
+  "version": "2.2.1",
+  "app_version": "2.2.1",
   "engine_version_required": "4.5.1",
-  "changes": "Interfața în română, engleză și spaniolă, cu alegerea limbii din Setări. Ghid actualizat, cu configurarea inițială și importul regulilor.",
+  "changes": "Jurnal de diagnostic local pentru aplicație, extensie și alerte, ca problemele să poată fi găsite rapid.",
   "download_url": {
     "mac": "https://gordas.dev/gdc-firewall/GDCFirewall-macOS.zip"
   },

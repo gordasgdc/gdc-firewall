@@ -112,10 +112,26 @@ final class UpdateChecker {
         return nil
     }
 
+    private let log = DiagnosticLog("update")
+
     func checkAtLaunch() {
         fetch { [weak self] result in
-            guard let self, case .success(let info) = result else { return }
-            guard let reason = self.reason(for: info) else { return }
+            guard let self else { return }
+            let info: UpdateInfo
+            switch result {
+            case .failure(let error):
+                // Regula 35: „n-am putut verifica” nu e „ești la zi”. La pornire
+                // nu deranjăm cu un pop-up, dar eșecul trebuie să se vadă undeva.
+                self.log.warning("Verificarea actualizărilor a eșuat: \(error.localizedDescription)")
+                return
+            case .success(let fetched):
+                info = fetched
+            }
+            guard let reason = self.reason(for: info) else {
+                self.log.info("La zi: publicat \(info.effectiveAppVersion), motor minim \(info.engineVersionRequired ?? "—")")
+                return
+            }
+            self.log.info("Actualizare disponibilă: \(info.effectiveAppVersion) (\(reason))")
 
             // Un motor nesusținut reapare la fiecare lansare, ca `mandatory`:
             // nu se poate închide o dată și uita, fiindcă protecția chiar e

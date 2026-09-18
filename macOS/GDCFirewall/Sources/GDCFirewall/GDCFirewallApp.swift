@@ -80,7 +80,13 @@ private struct MenuBarContent: View {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let log = DiagnosticLog("app")
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let info = Bundle.main.infoDictionary
+        log.info("Pornire GDC Firewall \(info?["CFBundleShortVersionString"] ?? "?") (build \(info?["CFBundleVersion"] ?? "?"))"
+            + " · motor LuLu \(LuLu.engineVersion) · \(ProcessInfo.processInfo.operatingSystemVersionString)"
+            + " · limbă \(Lang.current.rawValue) · \(Bundle.main.bundlePath)")
         AppMover.promptIfNeeded()
         #if !SWIFT_PACKAGE
         // Fără cererea asta extensia nu ajunge niciodată la macOS: nu apare în
@@ -93,5 +99,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AlertWindowController.shared.start()
         BlocklistStore.shared.refresh()
         UpdateChecker.shared.checkAtLaunch()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        log.info("Oprire GDC Firewall")
+        DiagnosticLog.flush()
     }
 }

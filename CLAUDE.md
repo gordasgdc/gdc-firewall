@@ -188,6 +188,18 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — v2.2.1.** Log de diagnostic local (Regula 39, nouă în
+  `~/Developer/CLAUDE.md`, cu GDC Firewall ca implementare de referință):
+  `DiagnosticLog.swift` → unified log + `~/Library/Logs/GDCFirewall.log`;
+  `scripts/logs.sh [minute|--follow]`. Extensia (motorul, root) rămâne doar
+  în unified log, sub `com.objective-see.lulu`; scriptul o include, filtrând
+  zgomotul de sistem. Diagnoza aceleiași zile: 2.2.0 instalat dar nepornit,
+  extensia activă era încă 2.0.4 — fără ascultător XPC (cursa de înlocuire)
+  și scriind în folderul LuLu vechi. Primul test cu logul nou a arătat că
+  2.1.0–2.2.1 cădeau la pornire: `FirstRunSetup` crea fereastra de pe un fir
+  de fundal (`Task {}` neizolat + `await`). Acum `@MainActor`. Lecție: orice
+  cod care atinge AppKit stă într-un tip `@MainActor`, nu doar „se apelează
+  de obicei de pe main”.
 - **2026-09-18 — v2.2.0.** Interfața în RO/EN/ES: `L("text românesc")` +
   `Resources/{en,es}.lproj/GDC.strings` (tabel `GDC`, nu `Localizable`, care e
   al motorului). În ținta Xcode, `xx.lproj` intră ca referințe de folder

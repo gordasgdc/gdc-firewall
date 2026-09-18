@@ -4,6 +4,11 @@ import SwiftUI
 /// Prezintă ferestre native auxiliare (Help/About) hostuind conținut
 /// SwiftUI — separate de overlay-ul principal (`OverlayWindowController`),
 /// ca userul să poată avea Dashboard-ul deschis ȘI ghidul/About în același timp.
+///
+/// `@MainActor`: AppKit aruncă o excepție (și oprește aplicația) dacă un
+/// `NSWindow` e creat în afara firului principal — exact crash-ul de la pornire
+/// din v2.1.0–2.2.1. Compilatorul refuză acum orice apel de pe alt fir.
+@MainActor
 enum AuxWindowPresenter {
     private static var controllers: [String: NSWindowController] = [:]
 
@@ -30,7 +35,7 @@ enum AuxWindowPresenter {
         NotificationCenter.default.addObserver(
             forName: NSWindow.willCloseNotification, object: window, queue: .main
         ) { _ in
-            controllers[id] = nil
+            Task { @MainActor in controllers[id] = nil }
         }
 
         controller.showWindow(nil)
