@@ -131,6 +131,12 @@ case "$KIND" in
         # nostru pachetul .pkg e cel notarizat, deci pasul ăsta e opțional.
         [ -n "${NOTARIZE_APP:-}" ] && notarize "$TARGET"
         ;;
+    notarize)
+        # Doar notarizare, fără re-semnare: pentru un pachet semnat deja de
+        # Xcode (scripts/build_engine_app.sh). Re-semnat aici, cu
+        # entitlements-urile brute, ar pierde $(TeamIdentifierPrefix) expandat.
+        notarize "$TARGET"
+        ;;
     pkg)
         if [ -z "${APPLE_SIGN_IDENTITY_INSTALLER:-}" ]; then
             echo "→ APPLE_SIGN_IDENTITY_INSTALLER nesetată — sar peste semnare."
@@ -142,7 +148,7 @@ case "$KIND" in
         notarize "$TARGET"
         ;;
     *)
-        echo "Tip necunoscut: $KIND (așteptat: app sau pkg)" >&2
+        echo "Tip necunoscut: $KIND (așteptat: app, notarize sau pkg)" >&2
         exit 2
         ;;
 esac

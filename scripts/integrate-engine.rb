@@ -11,6 +11,8 @@ GDC_ROOT  = ARGV[1]          # cale relativă la SOURCE_ROOT, spre sursele GDC
 TEAM_ID   = ARGV[2]
 APP_ID    = ARGV[3]
 VERSION   = ARGV[4]
+APP_PROFILE = ARGV[5]
+EXT_PROFILE = ARGV[6]
 
 project = Xcodeproj::Project.open(PROJECT)
 app = project.targets.find { |t| t.name == "LuLu" }
@@ -93,6 +95,11 @@ app.build_configurations.each do |config|
   s["HEADER_SEARCH_PATHS"] = ["$(inherited)", "$(SRCROOT)/App", "$(SRCROOT)/Shared", "$(SRCROOT)/App/3rd-party"]
   # Fără main.m, punctul de intrare e @main-ul SwiftUI.
   s["GENERATE_INFOPLIST_FILE"] = "NO"
+  # Profilele motorului („LuLu Application”) sunt ale Objective-See.
+  s["CODE_SIGN_STYLE"] = "Manual"
+  s["CODE_SIGN_IDENTITY"] = "Developer ID Application"
+  s["PROVISIONING_PROFILE_SPECIFIER"] = APP_PROFILE
+  s["PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]"] = APP_PROFILE
 end
 
 ext.build_configurations.each do |config|
@@ -106,6 +113,10 @@ ext.build_configurations.each do |config|
   # rula pe un Mac unde aplicația (13+) nu rulează: îi dăm același minim.
   # Setare de build, nu cod — sursele Extension/ rămân neatinse.
   s["MACOSX_DEPLOYMENT_TARGET"] = "13.0"
+  # Pachetul .systemextension poartă numele bundle ID-ului, nu pe cel al
+  # motorului — altfel ar rămâne „com.objective-see.lulu.extension”.
+  s["PRODUCT_NAME"] = "$(PRODUCT_BUNDLE_IDENTIFIER)"
+  s["PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]"] = EXT_PROFILE
 end
 
 project.save

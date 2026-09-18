@@ -1180,6 +1180,24 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — build complet semnat (`scripts/build_engine_app.sh`).**
+  Construiește aplicația din proiectul Xcode al motorului, cu extensia
+  înăuntru, semnate de Xcode (nu de `codesign` manual: doar Xcode expandează
+  `$(TeamIdentifierPrefix)` din entitlements și din `NEMachServiceName`).
+  Blocajul real e lipsa celor două **profile Developer ID** („GDC Firewall
+  Developer ID”, „GDC Firewall Extension Developer ID”) — fără ele macOS
+  omoară aplicația la pornire. După forumurile Apple, Network Extensions pe
+  Developer ID se bifează direct pe App ID, fără cerere separată; de
+  confirmat la crearea App ID-ului. Găsite construind: extensia se numea
+  încă `com.objective-see.lulu.extension.systemextension` și se afișa
+  „LuLu”; `GDCFirewall.entitlements` folosea `content-filter-provider`
+  (valoarea de App Store) în loc de `-systemextension`. La primul build
+  semnat reușit: App ID-ul aplicației cere și capabilitatea **System
+  Extension** (altfel profilul n-are `system-extension.install`), iar Xcode
+  injecta `get-task-allow` și în Release — oprit cu
+  `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO`, verificat în script, fiindcă
+  notarizarea l-ar respinge. Scriptul verifică și cerința XPC a extensiei
+  (`XPCListener.m`) pe aplicația semnată.
 - **2026-09-18 — v2.0.1.** Xcode 27 refuză minime sub macOS 12: extensia
   primește 13.0 din `integrate-engine.rb` (setare de build, nu cod).
   `update.json` → arhiva `.zip` de pe gordas.dev (linkul `.pkg` dădea 404);

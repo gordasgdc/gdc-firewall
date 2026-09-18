@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<!--
-	  Entitlement-ul de mai jos se acordă DOAR la cerere explicită aprobată
-	  de Apple pe contul Developer. Până atunci, semnarea Developer ID
-	  eșuează cu „profile doesn't support” — e un blocaj de cont, nu de cod.
+	  Semnarea Developer ID cere valoarea cu sufixul -systemextension; fără
+	  sufix e doar pentru App Store/development. Entitlement-ul trebuie să
+	  existe și în profilul Developer ID al App ID-ului.
 	-->
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
-		<string>content-filter-provider</string>
+		<string>content-filter-provider-systemextension</string>
 	</array>
 	<key>com.apple.developer.system-extension.install</key>
 	<true/>

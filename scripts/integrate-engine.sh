@@ -23,6 +23,10 @@ SHARED="$ENGINE/LuLu/Shared"
 TEAM_ID="8AR6XP8MG7"
 SIGNING_AUTH="Developer ID Application: DUMITRU CRISTINEL GORDAS (${TEAM_ID})"
 APP_ID="dev.gordas.GDCFirewall"
+# Numele profilelor Developer ID din portalul Apple, exact cum sunt create
+# acolo. Xcode le caută după nume; build_engine_app.sh le citește din proiect.
+APP_PROFILE="GDC Firewall App Developer ID"
+EXT_PROFILE="GDC Firewall Extension Developer ID"
 MACH_SUFFIX="$APP_ID"
 
 # Regula 0: versiunea vine din bundle-ul nostru, nu dintr-o constantă scrisă
@@ -81,6 +85,9 @@ PY
 echo "→ Numele serviciului Mach în Extension/Info.plist…"
 /usr/libexec/PlistBuddy -c "Set :NetworkExtension:NEMachServiceName \$(TeamIdentifierPrefix)${MACH_SUFFIX}" \
   "$ENGINE/LuLu/Extension/Info.plist"
+# Numele afișat în Setări de sistem, la aprobarea și în lista extensiilor.
+/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName GDC Firewall" \
+  "$ENGINE/LuLu/Extension/Info.plist"
 
 echo "→ Grupul de aplicații în entitlements…"
 for f in "$ENGINE/LuLu/App/App.entitlements" "$ENGINE/LuLu/Extension/Extension.entitlements"; do
@@ -136,7 +143,7 @@ cp "$ROOT/macOS/GDCFirewall/Resources/Assets.xcassets/AppIcon.appiconset/"* "$IC
 echo "→ Ținta App → GDC Firewall…"
 ruby "$ROOT/scripts/integrate-engine.rb" \
   "$PROJECT" "../../../macOS/GDCFirewall/Sources/GDCFirewall" \
-  "$TEAM_ID" "$APP_ID" "$VERSION"
+  "$TEAM_ID" "$APP_ID" "$VERSION" "$APP_PROFILE" "$EXT_PROFILE"
 
 # Marcăm starea, ca fetch-engine.sh să știe că diferențele din motor sunt
 # ale noastre, nu accidentale.

@@ -34,9 +34,10 @@ poate fi trimis de altcineva, iar răspunsul vine pe e-mailul contului.
 
 ## Ce NU e gata, și de ce
 
-1. **Entitlement Apple** — `content-filter-provider-systemextension` pe Team ID
-   `8AR6XP8MG7`. Blocaj de cont, nu de cod: fără el, build-ul semnat pornește
-   dar extensia nu se încarcă niciodată. **Acesta e pasul de vineri.**
+1. **Profilele Developer ID** — două, create în portalul Apple
+   (pașii îi tipărește `scripts/build_engine_app.sh`). Fără ele, build-ul
+   complet semnat nu pornește. Probabil nu mai e nevoie de cererea separată
+   de entitlement: Network Extensions se bifează direct pe App ID.
 2. **Semnare reală și notarizare** — depind de punctul 1. Până atunci
    build-urile sunt ad-hoc, bune pentru testarea interfeței, nu a filtrării.
 3. **Test manual pe un Mac real** — instalare, aprobarea extensiei din Setări
