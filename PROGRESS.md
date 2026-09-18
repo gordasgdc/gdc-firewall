@@ -1,6 +1,6 @@
 # Stare proiect — GDC Firewall
 
-**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.0.1 · **Ramură:** `main`
+**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.1.0 · **Ramură:** `main`
 
 ---
 
@@ -49,6 +49,14 @@ poate fi trimis de altcineva, iar răspunsul vine pe e-mailul contului.
    nu anunță o versiune mai nouă decât cea instalată.
 
 ---
+
+## Problemă deschisă
+
+**Actualizarea extensiei lasă daemon-ul fără serviciu XPC până la repornire.**
+Versiunea nouă pornește înainte ca cea veche să elibereze serviciul Mach, iar
+motorul nu reîncearcă. Între timp filtrul permite tot, fără alerte. De decis:
+aplicația detectează situația și cere repornirea Mac-ului, sau altă strategie
+de înlocuire.
 
 ## Reluare — de unde continui
 

@@ -1180,6 +1180,36 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — v2.1.0.** `INSTALL_DIRECTORY` din `consts.h` nu fusese
+  redenumit: daemon-ul GDC scria în `/Library/Objective-See/LuLu`, folderul
+  unui LuLu real (pe Mac-ul de test: 220 de reguli ale utilizatorului + 5
+  pasive adăugate de GDC). Acum `/Library/Application Support/GDC Firewall`,
+  verificat în build. Import LuLu/Little Snitch + configurare inițială;
+  `importRules:userOnly:` al motorului ÎNLOCUIEȘTE regulile utilizatorului,
+  deci importul trece prin `addRule` regulă cu regulă. `littlesnitch
+  export-model` cere root → prompt nativ de administrator. `decodeRules`
+  era greșit de la început (Reguli mereu goală).
+- **2026-09-18 — v2.0.4.** `LuLuConstants.swift` „oglindea” `consts.h`
+  UPSTREAM (Team ID `VBG97UB4TA`, serviciul `com.objective-see.lulu`), nu pe
+  cel rescris de integrare — aplicația căuta un serviciu Mach inexistent.
+  Oglinda trebuie să urmeze valorile DUPĂ integrare; acum verificat automat
+  în `build_engine_app.sh` (literalul din binar = `NEMachServiceName`).
+  Tot aici: `DaemonBridge` nu se reconecta după întrerupere — la înlocuirea
+  extensiei aplicația se lega de daemon-ul VECHI, care apoi dispărea.
+  Capcană de script găsită pe drum: `cmd | grep -q` sub `pipefail` pică fals
+  (SIGPIPE); verificările citesc prin `grep … < <(cmd)`.
+  **Problemă DESCHISĂ, confirmată în logul launchd:** la înlocuirea
+  extensiei, sysextd pornește versiunea nouă cât timp cea veche încă ține
+  serviciul Mach; `XPCListener` din motor primește „Operation not permitted”
+  și nu mai reîncearcă. Filtrul rulează fără interfață (motorul permite tot
+  și creează reguli pasive) până la repornirea Mac-ului. Afectează ORICE
+  actualizare a extensiei, deci și Self-Updater-ul.
+- **2026-09-18 — v2.0.3.** Al treilea strat lipsă din `App/` al motorului:
+  activarea extensiei nu pornește filtrul. `NEFilterManager` trebuie
+  configurat și salvat separat (LuLu: `toggleNetworkExtension:` din
+  `App/Extension.m`) — altfel extensia e „activated enabled” și procesul ei
+  nu rulează deloc. Orice altceva din `App/` scos la integrare trebuie
+  verificat la fel: ce făcea, și cine o face acum.
 - **2026-09-18 — v2.0.2.** Primul test real al build-ului complet: aplicația
   se închidea instant (`Unable to find class`, `NSPrincipalClass` =
   `NSApplicationKeyEvents` din interfața LuLu scoasă din țintă), iar

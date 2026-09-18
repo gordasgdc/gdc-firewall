@@ -15,6 +15,8 @@
 #   NOTARIZE=1 ./scripts/build_engine_app.sh  + notarizare (credențiale ca în
 #                                               codesigning/sign-and-notarize.sh)
 set -euo pipefail
+# Sub pipefail, `cmd | grep -q` pică fals când grep iese la prima potrivire și
+# `cmd` primește SIGPIPE. Verificările citesc deci prin `grep … < <(cmd)`.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$ROOT/Engine/LuLu/LuLu/LuLu.xcodeproj"
@@ -36,7 +38,7 @@ if [ -d "$DIST_DIR" ] && { ! [ -w "$DIST_DIR" ] || find "$DIST_DIR" -maxdepth 2 
 fi
 
 # --- 1. Identitatea de semnare -----------------------------------------
-security find-identity -v -p codesigning | grep -qF "$IDENTITY" \
+grep -qF "$IDENTITY" < <(security find-identity -v -p codesigning) \
   || fail "Lipseste din Keychain: ${IDENTITY}"
 
 # --- 2. Integrarea — reaplicată mereu (lista de surse e un instantaneu) --
@@ -103,7 +105,7 @@ for target in LuLu Extension; do
   fi
   [ "$(profile_field "$found" TeamIdentifier.0 || true)" = "$TEAM_ID" ] \
     || fail "Profilul „${name}” nu e al echipei ${TEAM_ID}."
-  profile_plist "$found" | grep -q "content-filter-provider-systemextension" \
+  grep -q "content-filter-provider-systemextension" < <(profile_plist "$found") \
     || fail "Profilul „${name}” nu acorda content-filter-provider-systemextension. Bifeaza Network Extensions pe App ID si regenereaza-l."
   lacking="$(missing_capabilities "$target" "$found")"
   if [ -n "$lacking" ]; then
@@ -180,7 +182,7 @@ done
 # la pornire („Unable to find class”), deși build-ul și semnătura sunt curate.
 PRINCIPAL="$(plutil -extract NSPrincipalClass raw -o - "$APP/Contents/Info.plist" 2>/dev/null || true)"
 if [ -n "$PRINCIPAL" ] && [ "$PRINCIPAL" != "NSApplication" ]; then
-  nm "$APP/Contents/MacOS/GDC Firewall" 2>/dev/null | grep -q "_OBJC_CLASS_\$_${PRINCIPAL}\$" \
+  grep -q "_OBJC_CLASS_\$_${PRINCIPAL}\$" < <(nm "$APP/Contents/MacOS/GDC Firewall" 2>/dev/null) \
     || fail "NSPrincipalClass=${PRINCIPAL} nu exista in binar — aplicatia s-ar inchide la pornire."
 fi
 
@@ -194,6 +196,19 @@ CONSTS="$(dirname "$PROJECT")/Shared/consts.h"
 define() { sed -nE "s/^#define[[:space:]]+$1[[:space:]]+@?\"([^\"]*)\".*/\1/p" "$CONSTS" | head -n1; }
 REQ="anchor apple generic and identifier \"$(define APP_ID)\" and certificate leaf [subject.CN] = \"$(define SIGNING_AUTH)\" and info [CFBundleShortVersionString] >= \"2.0.0\""
 codesign --verify -R="$REQ" "$APP" 2>/dev/null || fail "Aplicatia nu satisface cerinta XPC a extensiei: ${REQ}"
+# Daemon-ul GDC NU are voie să scrie în folderul unui LuLu real instalat pe
+# același Mac — i-ar citi și modifica regulile (s-a întâmplat, v2.0.x).
+EXT_BIN="$SYSEX/Contents/MacOS/${EXT_ID}"
+if grep -qF "/Library/Objective-See/LuLu" < <(strings "$EXT_BIN"); then
+  fail "Extensia foloseste inca /Library/Objective-See/LuLu (INSTALL_DIRECTORY din consts.h)."
+fi
+
+# Serviciul pe care îl caută aplicația (LuLuConstants.swift) trebuie să fie
+# exact cel pe care îl ascultă extensia. Altfel: filtru pornit, „Motor oprit”
+# în meniu, nicio alertă — și nicio eroare nicăieri.
+grep -qxF "$MACH" < <(strings "$APP/Contents/MacOS/GDC Firewall") \
+  || fail "Aplicatia nu cauta serviciul Mach al extensiei (${MACH}) — vezi LuLuConstants.swift."
+
 echo "✓ Semnatura, profile, entitlements, serviciul Mach (${MACH}) si cerinta XPC verificate."
 
 # --- 6. Notarizare (optional) + arhivă versionată (Regula 17) ------------

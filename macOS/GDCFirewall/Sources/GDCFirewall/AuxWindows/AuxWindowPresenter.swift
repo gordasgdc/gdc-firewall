@@ -36,6 +36,10 @@ enum AuxWindowPresenter {
         controller.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
+
+    static func close(id: String) {
+        controllers[id]?.close()
+    }
 }
 
 extension AuxWindowPresenter {

@@ -29,6 +29,20 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
 
     private var connection: NSXPCConnection?
 
+    /// Daemon-ul poate dispărea și reveni: înlocuirea extensiei la update,
+    /// repornire după o cădere, trezire din sleep. Fără reconectare, meniul
+    /// rămâne pe „Motor oprit” deși filtrul rulează. Așteptarea crește până
+    /// la un minut, ca un daemon absent să nu fie căutat în buclă strânsă.
+    private var reconnectItem: DispatchWorkItem?
+    private var reconnectDelay: TimeInterval = 2
+
+    /// Reconectări eșuate la rând. Cu filtrul pornit și daemon-ul de negăsit
+    /// minute în șir, cauza cunoscută e înlocuirea extensiei: versiunea nouă
+    /// n-a putut prelua serviciul Mach de la cea veche (CLAUDE.md, v2.0.4) și
+    /// doar repornirea Mac-ului o deblochează.
+    @Published private(set) var failedReconnects = 0
+    static let restartHintThreshold = 5
+
     /// Blocurile de răspuns, ținute pe `uuid`-ul alertei. Fiecare TREBUIE
     /// apelat exact o dată: dacă pierdem blocul, extensia ține conexiunea
     /// de rețea suspendată până expiră, iar utilizatorul vede „internetul
@@ -51,21 +65,35 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         // nu se reconectează singură (vezi comentariul din
         // `XPCDaemonClient.m`, metoda `reconnect`). O aruncăm și facem una
         // nouă, nu încercăm s-o reînviem.
-        conn.invalidationHandler = { [weak self] in
+        conn.invalidationHandler = { [weak self, weak conn] in
+            self?.log.error("Conexiunea XPC cu daemon-ul a fost invalidată (\(LuLu.daemonMachService, privacy: .public))")
             DispatchQueue.main.async {
-                self?.connection = nil
-                self?.isConnected = false
+                // O conexiune veche, deja înlocuită, nu atinge starea curentă.
+                guard let self, self.connection === conn else { return }
+                self.connection = nil
+                self.isConnected = false
+                self.scheduleReconnect()
             }
         }
-        conn.interruptionHandler = { [weak self] in
-            DispatchQueue.main.async { self?.isConnected = false }
+        conn.interruptionHandler = { [weak self, weak conn] in
+            self?.log.error("Conexiunea XPC cu daemon-ul a fost întreruptă")
+            DispatchQueue.main.async {
+                guard let self, self.connection === conn else { return }
+                self.isConnected = false
+                self.scheduleReconnect()
+            }
         }
 
         conn.resume()
         connection = conn
 
         proxy?.checkIn { [weak self] ready in
+            self?.log.info("checkIn la daemon: \(ready ? "acceptat" : "refuzat", privacy: .public)")
             DispatchQueue.main.async {
+                if ready {
+                    self?.reconnectDelay = 2
+                    self?.failedReconnects = 0
+                }
                 self?.isConnected = ready
                 if ready { self?.reloadRules() }
             }
@@ -73,13 +101,34 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
     }
 
     func reconnect() {
+        reconnectItem?.cancel()
+        reconnectItem = nil
+        // Invalidarea noastră nu e o cădere: fără handler-e, nu programează
+        // încă o reconectare (altfel fiecare reconectare ar naște alta).
+        connection?.invalidationHandler = nil
+        connection?.interruptionHandler = nil
         connection?.invalidate()
         connection = nil
         connect()
     }
 
+    private func scheduleReconnect() {
+        guard reconnectItem == nil else { return }
+        let delay = reconnectDelay
+        reconnectDelay = min(reconnectDelay * 2, 60)
+        failedReconnects += 1
+        log.info("Reconectare la daemon în \(Int(delay)) s")
+        let item = DispatchWorkItem { [weak self] in
+            self?.reconnectItem = nil
+            self?.reconnect()
+        }
+        reconnectItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
+    }
+
     private var proxy: XPCDaemonProtocol? {
         connection?.remoteObjectProxyWithErrorHandler { [weak self] error in
+            self?.log.error("Apel XPC eșuat: \(error.localizedDescription, privacy: .public)")
             DispatchQueue.main.async {
                 self?.lastError = error.localizedDescription
                 self?.isConnected = false
@@ -115,8 +164,29 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         // `deleteRule` cere ȘI cheia (calea), ȘI uuid-ul regulii — a doua
         // fiindcă un singur binar poate avea mai multe reguli, câte una per
         // endpoint. Ștergerea „pe cale” ar șterge prima găsită, la nimereală.
-        proxy?.deleteRule(rule.enginePath, rule: rule.uuid)
+        proxy?.deleteRule(rule.engineKey, rule: rule.uuid)
         rules.removeAll { $0.id == rule.id }
+    }
+
+    /// Import: câte un `addRule` per regulă, calea pe care o folosesc și
+    /// alertele. `importRules:userOnly:` al motorului ar ÎNLOCUI toate regulile
+    /// utilizatorului — un al doilea import l-ar șterge pe primul.
+    /// Motorul calculează singur semnătura binarului, din calea de pe disc.
+    func addImportedRules(_ infos: [[String: Any]]) {
+        guard let proxy else { return }
+        for info in infos { proxy.addRule(info) }
+        log.info("Import: \(infos.count) reguli trimise motorului")
+        reloadRules()
+    }
+
+    /// Semnăturile regulilor existente, ca un import repetat să nu dubleze.
+    var ruleSignatures: Set<String> {
+        Set(rules.map { Self.signature(path: $0.enginePath, addr: $0.endpointAddr,
+                                       port: $0.endpointPort, action: $0.action.rawValue) })
+    }
+
+    static func signature(path: String, addr: String, port: String, action: Int) -> String {
+        "\(path)|\(addr)|\(port)|\(action)"
     }
 
     // MARK: - XPCUserProtocol (daemon-ul ne apelează pe noi)
@@ -209,7 +279,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
     /// modelul de integrare din CLAUDE.md, Partea 2). Rulat din pachetul
     /// SPM de dezvoltare a interfeței, `Rule` nu există în runtime, iar
     /// dezarhivarea eșuează — pe bună dreptate, și o spunem explicit.
-    private static func decodeRules(_ archived: Data) -> [FirewallRule] {
+    static func decodeRules(_ archived: Data) -> [FirewallRule] {
         guard !archived.isEmpty else { return [] }
         let allowed: [AnyClass] = [
             NSDictionary.self, NSArray.self, NSString.self,
@@ -220,11 +290,16 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
             ofClasses: allowed, from: archived
         ) as? [String: Any] else { return [] }
 
-        // Structura e { cale: [Rule, Rule, …] } — mai multe reguli per binar,
-        // câte una per endpoint.
-        return root.flatMap { path, value -> [FirewallRule] in
-            guard let objects = value as? [AnyObject] else { return [] }
-            return objects.compactMap { FirewallRule(engineRule: $0, path: path) }
+        // Structura reală (verificată pe rules.plist): { cheie: { rules: [Rule],
+        // signingInfo, paths } }. Cheia e de regulă „semnătură:autoritate”,
+        // nu calea — calea vine din fiecare regulă.
+        return root.flatMap { key, value -> [FirewallRule] in
+            guard let entry = value as? [String: Any],
+                  let objects = entry["rules"] as? [AnyObject] else { return [] }
+            return objects.compactMap { object in
+                let path = object.value(forKey: "path") as? String ?? key
+                return FirewallRule(engineRule: object, path: path, key: key)
+            }
         }
     }
 }

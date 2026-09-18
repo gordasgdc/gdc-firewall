@@ -26,6 +26,10 @@ APP_ID="dev.gordas.GDCFirewall"
 # Numele profilelor Developer ID din portalul Apple, exact cum sunt create
 # acolo. Xcode le caută după nume; build_engine_app.sh le citește din proiect.
 APP_PROFILE="GDC Firewall App Developer ID"
+# Directorul de date al daemon-ului (reguli, preferințe, profile). Motorul
+# folosește /Library/Objective-See/LuLu — același folder cu un LuLu real
+# instalat pe Mac, deci GDC i-ar citi și scrie regulile.
+DATA_DIR="/Library/Application Support/GDC Firewall"
 EXT_PROFILE="GDC Firewall Extension Developer ID"
 MACH_SUFFIX="$APP_ID"
 
@@ -61,9 +65,9 @@ if [ "$MAJOR" -lt 2 ]; then
 fi
 
 echo "→ Identitate în consts.h…"
-python3 - "$SHARED/consts.h" "$TEAM_ID" "$SIGNING_AUTH" "$APP_ID" "$MACH_SUFFIX" <<'PY'
+python3 - "$SHARED/consts.h" "$TEAM_ID" "$SIGNING_AUTH" "$APP_ID" "$MACH_SUFFIX" "$DATA_DIR" <<'PY'
 import pathlib, re, sys
-path, team, auth, app_id, mach = sys.argv[1:6]
+path, team, auth, app_id, mach, data_dir = sys.argv[1:7]
 p = pathlib.Path(path)
 s = p.read_text()
 
@@ -78,8 +82,14 @@ s = define(s, "DAEMON_MACH_SERVICE", f"{team}.{mach}")
 s = define(s, "SIGNING_AUTH", auth)
 s = define(s, "APP_ID", app_id)
 s = define(s, "EXT_BUNDLE_ID", f"{app_id}.extension")
+
+# INSTALL_DIRECTORY e definit de două ori în consts.h (v4.5.1) — ambele.
+s, n = re.subn(r'(#define\s+INSTALL_DIRECTORY\s+@")[^"]*(")',
+               lambda m: m.group(1) + data_dir + m.group(2), s)
+if n < 1:
+    sys.exit("consts.h: nu gasesc INSTALL_DIRECTORY")
 p.write_text(s)
-print("   DAEMON_MACH_SERVICE, SIGNING_AUTH, APP_ID, EXT_BUNDLE_ID")
+print(f"   DAEMON_MACH_SERVICE, SIGNING_AUTH, APP_ID, EXT_BUNDLE_ID, INSTALL_DIRECTORY (x{n})")
 PY
 
 echo "→ Numele serviciului Mach în Extension/Info.plist…"

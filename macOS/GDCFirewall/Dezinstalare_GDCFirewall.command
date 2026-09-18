@@ -33,6 +33,15 @@ rm -rf "$HOME/Library/Saved Application State/$BUNDLE_ID.savedState"
 rm -rf "$HOME/Library/Logs/GDCFirewall"
 defaults delete "$BUNDLE_ID" 2>/dev/null || true
 
+# 4. Regulile și preferințele motorului — scrise de extensie, ca root.
+#    Folder separat de al unui LuLu instalat, deci LuLu rămâne neatins.
+ENGINE_DATA="/Library/Application Support/GDC Firewall"
+if [ -d "$ENGINE_DATA" ]; then
+  echo "Șterg regulile firewall-ului (cere parola de administrator a Mac-ului;"
+  echo "nu se vede nimic cât o tastezi — apasă Enter la final)."
+  sudo rm -rf "$ENGINE_DATA"
+fi
+
 echo
 echo "✅ GDC Firewall a fost dezinstalat."
 echo "   Motorul LuLu, dacă l-ai instalat separat, rămâne neatins."

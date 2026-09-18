@@ -33,17 +33,29 @@ private struct MenuBarContent: View {
     /// Până la aprobarea din Setări aplicația pare pornită și nu filtrează
     /// nimic — starea extensiei se spune explicit, nu se ascunde sub „oprit”.
     private var statusText: String {
+        if sysex.state == .filterOff { return "Filtrare oprită" }
         if bridge.isConnected { return "Protecție activă" }
         switch sysex.state {
+        case .active where bridge.failedReconnects >= DaemonBridge.restartHintThreshold:
+            // Filtrul rulează, dar fără interfață: motorul permite tot, fără
+            // alerte. Cauza cunoscută: înlocuirea extensiei la actualizare.
+            return "Repornește Mac-ul pentru a finaliza actualizarea"
         case .requesting: return "Se activează extensia…"
         case .needsApproval: return "Aprobă extensia în Setări de sistem"
         case .failed(let reason): return "Extensia nu a pornit: \(reason)"
-        case .unknown, .active: return "Motor oprit"
+        case .unknown, .active, .filterOff: return "Motor oprit"
         }
     }
 
     var body: some View {
         Text(statusText)
+
+        if sysex.state == .active || sysex.state == .filterOff {
+            Toggle("Filtrare activă", isOn: Binding(
+                get: { sysex.state == .active },
+                set: { sysex.setFilterEnabled($0) }
+            ))
+        }
 
         Divider()
 
@@ -51,6 +63,7 @@ private struct MenuBarContent: View {
             .keyboardShortcut("r")
 
         Toggle("Mod Silențios", isOn: $autoPilot.isEnabled)
+        Button("Importă reguli din alte firewall-uri…") { AuxWindowPresenter.showSetup() }
 
         Divider()
 
@@ -71,6 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Fără cererea asta extensia nu ajunge niciodată la macOS: nu apare în
         // Setări de sistem și nu cere aprobare. Harnașamentul SPM n-are extensie.
         SystemExtensionInstaller.shared.activate()
+        FirstRunSetup.showIfNeeded()
         #endif
         _ = ThemeManager.shared
         DaemonBridge.shared.connect()

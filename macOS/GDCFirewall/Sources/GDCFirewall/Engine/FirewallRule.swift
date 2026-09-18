@@ -49,6 +49,11 @@ struct FirewallRule: Identifiable, Codable, Hashable {
     let id: String
     let uuid: String                // uuid-ul regulii din motor
     let enginePath: String          // cale absolută a binarului
+    /// Cheia din dicționarul de reguli al motorului — de regulă
+    /// „semnătură:autoritate”, nu calea. `deleteRule` o cere pe asta.
+    let engineKey: String
+    let endpointAddr: String
+    let endpointPort: String
     let bundleID: String?
     var friendlyName: String        // nume intuitiv în română
     var action: RuleAction
@@ -69,7 +74,7 @@ struct FirewallRule: Identifiable, Codable, Hashable {
     /// Construiește regula dintr-un obiect `Rule` al motorului, citit prin
     /// KVC. Stratul GDC nu redeclară clasa motorului: dacă un câmp dispare
     /// acolo, aici primim `nil` și sărim regula, în loc să crăpăm.
-    init?(engineRule object: AnyObject, path: String) {
+    init?(engineRule object: AnyObject, path: String, key: String) {
         guard let uuid = object.value(forKey: "uuid") as? String else { return nil }
         let name = object.value(forKey: "name") as? String
         let type = (object.value(forKey: "type") as? NSNumber)?.intValue ?? LuLu.RuleType.default
@@ -82,6 +87,9 @@ struct FirewallRule: Identifiable, Codable, Hashable {
         // cheia de identitate în listă e uuid-ul, nu calea.
         self.id = uuid
         self.enginePath = path
+        self.engineKey = key
+        self.endpointAddr = object.value(forKey: "endpointAddr") as? String ?? "*"
+        self.endpointPort = object.value(forKey: "endpointPort") as? String ?? "*"
         self.bundleID = signing?[LuLu.Key.signingID] as? String
         self.action = RuleAction(rawValue: state) ?? .block
         self.isAppleSigned = (type == LuLu.RuleType.apple) || (signer == LuLu.Signer.apple)

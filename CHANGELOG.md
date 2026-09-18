@@ -2,6 +2,72 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.1.0 (2026-09-18) — Import din LuLu și Little Snitch, filtru finalizat
+
+### Added
+- **Configurare inițială** (o singură dată, doar dacă găsește alte
+  firewall-uri; redeschisă din meniu): detectează Little Snitch și LuLu și
+  starea lor reală, importă regulile lor și arată exact de unde le oprește
+  utilizatorul — macOS nu permite unei aplicații să oprească filtrul altui
+  producător.
+- **Import LuLu**: citește direct `/Library/Objective-See/LuLu/rules.plist`,
+  doar regulile create de utilizator; sare regulile dezactivate, expirate,
+  valabile doar pe durata unui proces și pe cele ale aplicațiilor absente.
+- **Import Little Snitch**: `littlesnitch export-model` prin promptul nativ
+  de parolă de administrator, sau un fișier `.lsrules`/JSON ales manual.
+  Domeniile devin regex (domeniu + subdomenii), adresele CIDR rămân CIDR.
+  Ce nu are echivalent în motor (intrare, „via”, „întreabă”, intervale de
+  porturi/adrese, destinații speciale) se sare și se numără — o regulă nu e
+  niciodată lărgită (un „blochează intervalul X” nu devine „blochează tot”).
+- Comutator „Filtrare activă” în meniu. O oprire făcută de utilizator (meniu
+  sau Setări → Rețea → Filtre) se respectă și la relansare.
+- Meniul cere repornirea Mac-ului când filtrul rulează, dar daemon-ul e de
+  negăsit după 5 reconectări (cazul înlocuirii extensiei la actualizare).
+
+### Fixed
+- **Daemon-ul GDC folosea folderul LuLu** (`/Library/Objective-See/LuLu`):
+  citea și scria regulile unui LuLu real de pe același Mac. Acum
+  `/Library/Application Support/GDC Firewall`; build-ul verifică asta.
+- Fereastra Reguli era mereu goală: `decodeRules` presupunea structura
+  `{ cale: [Rule] }`, cea reală e `{ cheie: { rules, signingInfo, paths } }`.
+- Ștergerea unei reguli trimitea calea în locul cheii motorului.
+- Dezinstalatorul șterge și datele motorului (cere parola de administrator).
+
+### Known issues
+- Formatul exact al `littlesnitch export-model` nu a putut fi verificat
+  (cere root); parserul urmează formatul public `.lsrules`. Testat pe un
+  fișier `.lsrules` de probă și pe regulile LuLu reale, nu pe un export
+  Little Snitch real.
+- Ghidul PDF nu descrie încă fereastra de configurare inițială (Regula 8).
+
+## v2.0.4 (2026-09-18) — Aplicația se conectează la daemon
+
+### Fixed
+- Meniul rămânea pe „Motor oprit” cu filtrul pornit: `LuLuConstants.swift`
+  păstrase valorile upstream (`VBG97UB4TA.com.objective-see.lulu`), iar
+  extensia integrată ascultă pe `8AR6XP8MG7.dev.gordas.GDCFirewall`.
+  Aplicația căuta un serviciu Mach care nu există.
+
+- După o întrerupere (extensie înlocuită la update, daemon repornit, sleep)
+  aplicația nu se mai reconecta niciodată. Acum reîncearcă singură, cu
+  așteptare crescătoare de la 2 s la 60 s.
+
+### Added
+- Log de diagnostic în `DaemonBridge` (Regula 25): invalidare, întrerupere,
+  apeluri XPC eșuate, rezultatul `checkIn`.
+- `build_engine_app.sh` verifică că serviciul Mach din binarul aplicației e
+  exact `NEMachServiceName` al extensiei construite.
+
+## v2.0.3 (2026-09-18) — Filtrul de rețea chiar pornește
+
+### Fixed
+- Extensia ajungea „activated enabled”, dar procesul ei nu pornea: filtrul
+  (`NEFilterManager`) nu era configurat nicăieri — logica trăia în
+  `App/Extension.m` al motorului, scos din țintă. Portată în
+  `SystemExtensionInstaller`: filtrare pe socket-uri, fără pachete, numele
+  „GDC Firewall” în Setări → Rețea → Filtre. Refuzul promptului de filtrare
+  apare în meniu ca eroare.
+
 ## v2.0.2 (2026-09-18) — Aplicația completă pornește și cere extensia
 
 ### Fixed

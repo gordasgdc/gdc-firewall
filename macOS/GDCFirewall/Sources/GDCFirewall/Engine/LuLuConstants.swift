@@ -14,15 +14,17 @@ enum LuLu {
     /// tag-ul clonat — altfel aplicația ar raporta un motor pe care nu-l are.
     static let engineVersion = "4.5.1"
 
-    /// consts.h:81 — `DAEMON_MACH_SERVICE`.
+    /// consts.h:81 — `DAEMON_MACH_SERVICE`, cu valoarea scrisă de
+    /// `scripts/integrate-engine.sh`, NU cea upstream
+    /// (`VBG97UB4TA.com.objective-see.lulu`): cu aceea aplicația căuta un
+    /// serviciu care nu există și rămânea pe „Motor oprit”.
     ///
-    /// Prefixul e Team ID-ul celui care semnează daemon-ul, nu un text
-    /// oarecare: macOS refuză conexiunea dacă aplicația nu e semnată cu
-    /// ACELAȘI Team ID. De aceea GDC Firewall se construiește din sursa
-    /// motorului, cu Team ID-ul GDC, nu ca aplicație separată lângă un LuLu
-    /// oficial descărcat de pe obdev.at — vezi CLAUDE.md, Partea 2.
-    static let teamID = "VBG97UB4TA"
-    static var daemonMachService: String { "\(teamID).com.objective-see.lulu" }
+    /// Prefixul e Team ID-ul celui care semnează daemon-ul: macOS refuză
+    /// conexiunea dacă aplicația nu e semnată cu ACELAȘI Team ID.
+    /// Literal, nu interpolat: `build_engine_app.sh` îl caută în binar și îl
+    /// compară cu `NEMachServiceName` al extensiei construite.
+    static let teamID = "8AR6XP8MG7"
+    static let daemonMachService = "8AR6XP8MG7.dev.gordas.GDCFirewall"
 
     /// consts.h:87-90 — `RULE_STATE_BLOCK` / `RULE_STATE_ALLOW`.
     enum RuleState {
@@ -54,6 +56,13 @@ enum LuLu {
         static let process = 103
     }
 
+    /// consts.h:28-33 — `EndpointType`, cum se interpretează `endpointAddr`.
+    enum EndpointType {
+        static let exact = 0
+        static let regex = 1
+        static let cidr = 2
+    }
+
     /// consts.h:16 — `enum Signer{None, Apple, AppStore, DevID, AdHoc}`.
     /// Fără inițializatori expliciți, deci numerotare C de la 0: Apple e 1,
     /// nu 0. `None` (0) înseamnă NESEMNAT — opusul lui „sigur”.
@@ -83,5 +92,7 @@ enum LuLu {
         static let signer = "signatureSigner"        // consts.h:330
         static let signingID = "signatureIdentifier" // consts.h:327
         static let processDeleted = "deleted"
+        static let endpointAddrIsRegex = "endpointAddrIsRegex" // consts.h:344
+        static let `protocol` = "protocol"                      // consts.h:359
     }
 }
