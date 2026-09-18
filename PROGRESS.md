@@ -1,6 +1,6 @@
 # Stare proiect — GDC Firewall
 
-**Ultima actualizare:** 2026-09-15 · **Versiune:** 2.0.0 · **Ramură:** `main`
+**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.0.1 · **Ramură:** `main`
 
 ---
 
@@ -30,7 +30,7 @@ poate fi trimis de altcineva, iar răspunsul vine pe e-mailul contului.
 | Ghid `Instructiuni_Utilizare.pdf`, RO/EN/ES, 9 pagini | gata |
 | Scripturi: build, integrare, verificare, sincronizare site | gata |
 | Documentație de semnare + checklist de notarizare | gata |
-| Distribuție sincronizată în `gdc-plugin-manager-catalog-vendor/docs/gdc-firewall/` | gata, **necomisă acolo** |
+| Distribuție sincronizată în `gdc-plugin-manager-catalog-vendor/docs/gdc-firewall/` | gata (v2.0.0 comisă) |
 
 ## Ce NU e gata, și de ce
 
@@ -42,9 +42,10 @@ poate fi trimis de altcineva, iar răspunsul vine pe e-mailul contului.
 3. **Test manual pe un Mac real** — instalare, aprobarea extensiei din Setări
    de sistem, o alertă reală. Nicio verificare automată nu acoperă pașii
    aceștia; vezi secțiunea 6 din `codesigning/README-notarizare.md`.
-4. **Commit + push în repo-ul de distribuție** — fișierele sunt scrise în
-   `gdc-plugin-manager-catalog-vendor/docs/gdc-firewall/`, dar commit-ul pe
-   acel repo e un pas separat și explicit, nu unul făcut automat de scripturi.
+4. **Publicarea v2.0.1 pe gordas.dev** — `build_app.sh` + `sync-site.sh`,
+   apoi commit + push în `gdc-plugin-manager-catalog-vendor`. Până atunci
+   site-ul servește 2.0.0 cu vechiul link `.pkg` (404), inofensiv cât timp
+   nu anunță o versiune mai nouă decât cea instalată.
 
 ---
 

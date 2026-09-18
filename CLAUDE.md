@@ -1180,6 +1180,15 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — v2.0.1.** Xcode 27 refuză minime sub macOS 12: extensia
+  primește 13.0 din `integrate-engine.rb` (setare de build, nu cod).
+  `update.json` → arhiva `.zip` de pe gordas.dev (linkul `.pkg` dădea 404);
+  `SelfUpdater` tratează acum și `.zip`, cu verificarea versiunii din arhivă.
+  Capcană: instalările 2.0.0 nu se pot actualiza singure din `.zip` (vechiul
+  updater face `installer -pkg` pe orice). Regula 32 verificată: 0 linii
+  `Co-Authored-By: Claude` în mesajele de commit — cele 4 potriviri ale
+  `git log --all -p | grep` erau chiar textul Regulii 32 din acest fișier.
+  Verificarea corectă: `git log --all --format=%B | grep -ci "Co-Authored-By: Claude"`.
 - **2026-09-15 — v2.0.0.** Integrare reală în workspace-ul motorului
   (ambele ținte compilează), actualizare hibridă app/motor, ghid PDF
   trilingv (9 pagini), documentație de semnare + notarizare. Saltul de la

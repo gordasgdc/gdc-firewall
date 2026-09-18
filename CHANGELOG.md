@@ -2,6 +2,28 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.0.1 (2026-09-18) — Actualizare automată din arhiva .zip, build cu Xcode 27
+
+### Fixed
+- `update.json` indica `releases/latest/download/GDCFirewall.pkg`, care dă
+  404 (nu există release GitHub și nici `.pkg`). Linkul duce acum la arhiva
+  `https://gordas.dev/gdc-firewall/GDCFirewall-macOS.zip`.
+- `SelfUpdater` înțelege acum și `.zip`: dezarhivează, verifică versiunea
+  din arhivă față de cea anunțată și înlocuiește aplicația pe loc. Înainte,
+  orice descărcare ajungea la `installer -pkg`.
+- Relansarea după update folosea `open -a "GDCFirewall"`, dar bundle-ul se
+  numește „GDC Firewall.app” — acum `open -b <bundle id>`.
+- Pagina de rezervă la eșecul update-ului era release-ul GitHub (gol); acum
+  e `gordas.dev/gdc-firewall/`.
+- Build-ul picase cu Xcode 27 (minim acceptat macOS 12): ținta extensiei
+  primește același minim ca aplicația, macOS 13. Doar setare de build;
+  sursele `Extension/` rămân neatinse.
+
+### Known issues
+- Instalările 2.0.0 au vechiul `SelfUpdater`, care trimite orice fișier la
+  `installer -pkg`: nu se pot actualiza singure din `.zip`. Update manual,
+  de pe gordas.dev, o singură dată.
+
 ## v2.0.0 (2026-09-15) — Integrare cu motorul, actualizare hibridă, ghid trilingv
 
 ### Added

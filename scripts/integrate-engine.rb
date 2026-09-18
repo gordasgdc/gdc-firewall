@@ -85,8 +85,7 @@ app.build_configurations.each do |config|
   s["DEVELOPMENT_TEAM[sdk=macosx*]"] = TEAM_ID
   s["SWIFT_VERSION"] = "5.0"
   # Motorul țintește macOS 10.15; interfața GDC folosește MenuBarExtra și
-  # scena Window, ambele macOS 13+. Ridicăm minimul DOAR pe aplicație —
-  # extensia rămâne cu ținta ei originală, ca să n-o atingem nici aici.
+  # scena Window, ambele macOS 13+.
   s["MACOSX_DEPLOYMENT_TARGET"] = "13.0"
   s["SWIFT_OBJC_BRIDGING_HEADER"] = "GDC-Bridging-Header.h"
   s["SWIFT_OPTIMIZATION_LEVEL"] = config.name == "Debug" ? "-Onone" : "-O"
@@ -102,6 +101,11 @@ ext.build_configurations.each do |config|
   s["MARKETING_VERSION"] = VERSION
   s["DEVELOPMENT_TEAM"] = TEAM_ID
   s["DEVELOPMENT_TEAM[sdk=macosx*]"] = TEAM_ID
+  # Xcode 27 refuză orice minim sub 12.0, iar 10.15-ul original al motorului
+  # oprește build-ul. Extensia trăiește în pachetul aplicației, deci nu poate
+  # rula pe un Mac unde aplicația (13+) nu rulează: îi dăm același minim.
+  # Setare de build, nu cod — sursele Extension/ rămân neatinse.
+  s["MACOSX_DEPLOYMENT_TARGET"] = "13.0"
 end
 
 project.save
