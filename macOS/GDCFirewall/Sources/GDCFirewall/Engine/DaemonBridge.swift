@@ -97,11 +97,19 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
                     // Motorul poate fi proaspăt (extensie nouă, repornire):
                     // îi retrimitem blocklist-ul la fiecare conectare.
                     BlocklistStore.shared.applyToEngine()
+                    Task { @MainActor in UpdateGuard.releaseIfSafe() }
                 }
                 self?.isConnected = ready
                 if ready { self?.reloadRules() }
             }
         }
+    }
+
+    /// După o înlocuire sau o repornire a motorului: reîncercări rapide, de la zero.
+    func reconnectNow() {
+        reconnectDelay = 1
+        failedReconnects = 0
+        reconnect()
     }
 
     func reconnect() {
@@ -121,6 +129,9 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         let delay = reconnectDelay
         reconnectDelay = min(reconnectDelay * 2, 60)
         failedReconnects += 1
+        if failedReconnects == Self.restartHintThreshold {
+            Task { @MainActor in SystemExtensionInstaller.shared.checkEngineHealth() }
+        }
         log.info("Reconectare la daemon în \(Int(delay)) s")
         let item = DispatchWorkItem { [weak self] in
             self?.reconnectItem = nil
@@ -215,6 +226,16 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
     }
 
     // MARK: - Preferințele motorului
+
+    func preferences() async -> [String: Any]? {
+        guard let proxy else { return nil }
+        // Un daemon care nu răspunde n-ar apela niciodată blocul: timeout de 3 s.
+        return await withCheckedContinuation { continuation in
+            let once = ResumeOnce(continuation)
+            proxy.getPreferences { prefs in once.resume(prefs as? [String: Any]) }
+            DispatchQueue.global().asyncAfter(deadline: .now() + 3) { once.resume(nil) }
+        }
+    }
 
     /// Blocklist-ul, lista de excepții etc. — aplicate de motor fiecărei
     /// conexiuni, nu doar celor care ajung la o alertă.
@@ -365,5 +386,21 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
                 return FirewallRule(engineRule: object, path: path, key: key)
             }
         }
+    }
+}
+
+/// Reia o continuare O SINGURĂ dată — răspunsul XPC și timeout-ul se întrec.
+private final class ResumeOnce: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<[String: Any]?, Never>?
+
+    init(_ continuation: CheckedContinuation<[String: Any]?, Never>) { self.continuation = continuation }
+
+    func resume(_ value: [String: Any]?) {
+        lock.lock()
+        let pending = continuation
+        continuation = nil
+        lock.unlock()
+        pending?.resume(returning: value)
     }
 }

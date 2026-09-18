@@ -37,22 +37,30 @@ private struct MenuBarContent: View {
     /// Până la aprobarea din Setări aplicația pare pornită și nu filtrează
     /// nimic — starea extensiei se spune explicit, nu se ascunde sub „oprit”.
     private var statusText: String {
+        switch sysex.phase {
+        case .replacing: return L("Se actualizează motorul de filtrare…")
+        case .deferred: return L("Actualizarea motorului e amânată")
+        case .needsReboot: return L("Repornește Mac-ul pentru a finaliza actualizarea")
+        case .idle: break
+        }
         if sysex.state == .filterOff { return L("Filtrare oprită") }
         if bridge.isConnected { return L("Protecție activă") }
         switch sysex.state {
-        case .active where bridge.failedReconnects >= DaemonBridge.restartHintThreshold:
-            // Filtrul rulează, dar fără interfață: motorul permite tot, fără
-            // alerte. Cauza cunoscută: înlocuirea extensiei la actualizare.
-            return L("Repornește Mac-ul pentru a finaliza actualizarea")
+        case .active:
+            // Regulile se aplică în continuare; doar legătura cu interfața lipsește.
+            return L("Se reconectează la motor…")
         case .requesting: return L("Se activează extensia…")
         case .needsApproval: return L("Aprobă extensia în Setări de sistem")
         case .failed(let reason): return L("Extensia nu a pornit: %@", reason)
-        case .unknown, .active, .filterOff: return L("Motor oprit")
+        case .unknown, .filterOff: return L("Motor oprit")
         }
     }
 
     var body: some View {
         Text(statusText)
+        if sysex.phase == .deferred {
+            Button(L("Finalizează actualizarea motorului…")) { sysex.finishEngineUpdate() }
+        }
 
         if sysex.state == .active || sysex.state == .filterOff {
             Toggle(L("Filtrare activă"), isOn: Binding(

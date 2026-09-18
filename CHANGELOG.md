@@ -2,6 +2,38 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.3.2 (2026-09-18) — Înlocuirea extensiei fără repornirea Mac-ului
+
+### Fixed
+- **Cursa de înlocuire a extensiei** (problema deschisă din v2.0.4). Cauza,
+  din logul launchd: la înlocuire, extensia nouă e înregistrată cât timp jobul
+  vechi încă există, iar launchd îi scoate serviciul Mach din definiție — nu
+  se mai putea conecta nicio interfață până la repornirea Mac-ului.
+  Reparația, verificată pe Mac-ul real: **înlocuire secvențială** — jobul
+  vechi se oprește ÎNAINTE de activarea celui nou.
+  - instalare manuală peste o versiune care rulează: o singură parolă de
+    administrator; „Anulează” amână actualizarea motorului (aplicația
+    folosește filtrul vechi, meniul oferă „Finalizează actualizarea
+    motorului…”), fără nicio buclă de prompturi;
+  - actualizarea automată o face în scriptul ei, care rulează deja ca root —
+    fără parolă în plus;
+  - dacă o versiune mai veche a aplicației a produs totuși cursa: un singur
+    mesaj „Repornește Mac-ul…” (singura reparație reală; `kickstart` și
+    `bootout` pe jobul nou au fost testate și NU repară).
+- **Garda de actualizare**: pe durata înlocuirii, motorul blochează
+  conexiunile necunoscute (regulile existente se aplică); preferințele
+  anterioare se refac la conectarea cu extensia nouă, inclusiv după un crash.
+- **Mutare în Aplicații**: pornită din altă parte (ex. Downloads, inclusiv
+  sub App Translocation), aplicația oferă „Mută în folderul Aplicații”, se
+  copiază, se relansează din `/Applications` și duce originalul la Coș. O
+  copie veche deținută de root cere parola de administrator. `~/Applications`
+  nu mai e acceptat: macOS nu activează extensia de rețea de acolo.
+
+### Added
+- `scripts/cleanup_competing_firewalls.sh` — curățare Little Snitch + LuLu
+  (la Coș, recuperabil; GDC Firewall exclus și verificat la final).
+- `scripts/engine-status.sh` — starea motorului, fără root.
+
 ## v2.3.1 (2026-09-18) — Layout bară laterală, Setări la vedere, prima arhivă notarizată
 
 ### Fixed

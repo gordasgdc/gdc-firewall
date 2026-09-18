@@ -192,6 +192,46 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — v2.3.2. Cursa de înlocuire a extensiei, REZOLVATĂ** (vezi
+  problema deschisă din v2.0.4). Fapte verificate: oprirea filtrului nu
+  oprește procesul extensiei (același PID); `uninstall` XPC șterge folderul
+  de date (inutilizabil ca repornire); `launchctl print system/<eticheta>`
+  arată fără root dacă serviciul deține endpoint-ul Mach (`active = 1`).
+  Eticheta = `NetworkExtension.dev.gordas.GDCFirewall.extension.<short>.<build>`
+  din Info.plist-ul extensiei. Reparația = `kickstart -k` pe serviciul nou
+  (root): în SelfUpdater fără parolă în plus, manual cu un prompt. Garda:
+  modul pasiv „block, fără reguli” e verificat în motor ÎNAINTEA
+  `allowNoClient`, deci blochează necunoscutele în fereastra fără client.
+  **[ÎNVECHIT în aceeași zi — `kickstart -k` NU repară]**, dovedit la primul
+  test real (2.3.1 → 2.3.2): logul launchd arată că `nesessionmanager`
+  trimite jobul nou cât timp cel vechi încă e în launchd („The endpoint …
+  defined in plist already exists and is owned by …2.3.1”), iar launchd scoate
+  endpoint-ul din DEFINIȚIA jobului nou. `kickstart -k` repornește procesul cu
+  aceeași definiție → tot fără serviciu Mach. Rezultat: 15 prompturi de parolă
+  în buclă (verificarea de sănătate reluată după fiecare eșec). Reparat:
+  promptul automat apare o singură dată per versiune/lansare, iar un eșec nu
+  mai trece prin `.idle`. Ipoteza nouă, de verificat cu
+  `scripts/repair-engine.sh`: `bootout` pe jobul nou, ca macOS să-l retrimită
+  cu endpoint-ul liber. Tot aici: `scripts/cleanup_competing_firewalls.sh`
+  (Little Snitch + LuLu → Coș, GDC exclus și verificat la final).
+  **[ÎNVECHIT și ipoteza `bootout` — rezolvarea FINALĂ e mai jos]**: `bootout`
+  pe jobul nou îl scoate cu tot cu înregistrarea providerului
+  (`nesessionmanager`: „Found 0 registrations”), iar comutarea filtrului nu-l
+  retrimite — doar o activare/înlocuire sau repornirea Mac-ului înregistrează
+  din nou. Test decisiv: FĂRĂ job vechi în launchd, înlocuirea se înregistrează
+  curat. **Rezolvarea verificată = înlocuire secvențială**: jobul VECHI se
+  scoate (`bootout`, root) ÎNAINTE de cererea de activare — manual o parolă
+  (`activateSequentially`), în SelfUpdater în scriptul root, înainte de
+  `open`. Test real 2.3.1 → 2.3.2: jobul nou deține serviciul Mach, checkIn
+  acceptat, fără repornire. Capcană găsită la același test: prima citire
+  `launchctl print` la 16 ms după activare arată încă „fără serviciu Mach”
+  (ascultătorul pornește după) — verdictul se dă după 10 s de așteptare.
+  `repair-engine.sh` (făcea `bootout` pe jobul nou) e șters, înlocuit de
+  `engine-status.sh` (doar diagnostic). AppMover: doar `/Applications`
+  (sysextd refuză altă locație), App Translocation rezolvată prin
+  `SecTranslocateCreateOriginalPathForURL`, relansare după ieșirea
+  procesului (un `open` cât rulează reactivează instanța veche), cale admin
+  pentru o copie deținută de root.
 - **2026-09-18 — v2.3.1.** Prima publicare a build-ului complet notarizat:
   `scripts/release_engine.sh` (profil Keychain `gdc-notary`, același ca
   DataMover). Arhiva de pe gordas.dev conține de acum aplicația CU extensia;
@@ -252,7 +292,7 @@ macOS/GDCFirewall/Sources/GDCFirewall/
   extensiei aplicația se lega de daemon-ul VECHI, care apoi dispărea.
   Capcană de script găsită pe drum: `cmd | grep -q` sub `pipefail` pică fals
   (SIGPIPE); verificările citesc prin `grep … < <(cmd)`.
-  **Problemă DESCHISĂ, confirmată în logul launchd:** la înlocuirea
+  **Problemă DESCHISĂ [ÎNCHISĂ în v2.3.2], confirmată în logul launchd:** la înlocuirea
   extensiei, sysextd pornește versiunea nouă cât timp cea veche încă ține
   serviciul Mach; `XPCListener` din motor primește „Operation not permitted”
   și nu mai reîncearcă. Filtrul rulează fără interfață (motorul permite tot

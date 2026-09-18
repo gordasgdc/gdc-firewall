@@ -51,7 +51,7 @@ let ro = Guide(
             "Un firewall trebuie să vadă fiecare conexiune de rețea a fiecărei aplicații. Apple nu permite niciunui program să facă asta fără acordul tău explicit, dat o singură dată, din Setări de sistem. Este o protecție pentru tine, nu o problemă a aplicației.")),
         Section(heading: "1. Instalare", body: .steps([
             "Descarcă arhiva de pe <b>gordas.dev/gdc-firewall</b> și deschide-o. Conține trei fișiere: aplicația <b>GDC Firewall</b>, scriptul de dezinstalare și acest ghid.",
-            "Dă dublu-click pe <b>GDC Firewall</b>. Dacă aplicația nu e în folderul Aplicații, te întreabă dacă o mută acolo: apasă <b>„Mută în Aplicații”</b>. De acolo se actualizează singură și are permisiunile corecte.",
+            "Dă dublu-click pe <b>GDC Firewall</b>. Dacă aplicația nu e în folderul Aplicații, te întreabă dacă o mută acolo: apasă <b>„Mută în folderul Aplicații”</b>: se mută și repornește singură. E obligatoriu — macOS pornește filtrul de rețea doar din folderul Aplicații.",
             "Fă pasul 0 de mai sus.",
         ])),
         Section(heading: "2. Configurare inițială — alte firewall-uri și importul regulilor", body: .text(
@@ -89,8 +89,9 @@ let ro = Guide(
             "<b>„Protecție activă”</b> — totul funcționează.",
             "<b>„Filtrare oprită”</b> — ai oprit filtrarea. O pornești din comutatorul <b>„Filtrare activă”</b>, chiar sub acest mesaj.",
             "<b>„Aprobă extensia în Setări de sistem”</b> — pasul 0 nu e terminat.",
-            "<b>„Repornește Mac-ul pentru a finaliza actualizarea”</b> — după o actualizare, macOS a pornit filtrul nou înainte să-l elibereze pe cel vechi. Filtrul merge, dar fără alerte, până la repornire. Repornește Mac-ul o dată.",
-            "<b>„Motor oprit”</b> — aplicația nu comunică încă cu filtrul. Dacă nu trece în câteva minute, repornește Mac-ul.",
+            "<b>„Se reconectează la motor…”</b> — legătura dintre aplicație și filtru se reface singură, de obicei în câteva secunde. Regulile tale se aplică în continuare.",
+            "<b>„Actualizarea motorului e amânată”</b> — ai instalat o versiune nouă peste una care rula și ai apăsat „Anulează” la parola de administrator. Aplicația folosește în continuare filtrul vechi, deci ești protejat. Apasă <b>„Finalizează actualizarea motorului…”</b> din meniu și scrie parola (nu se vede cât tastezi): filtrul vechi se oprește, iar cel nou pornește în câteva secunde, fără repornirea Mac-ului.",
+            "<b>„Repornește Mac-ul pentru a finaliza actualizarea”</b> — rar, după o actualizare făcută de o versiune mai veche a aplicației. Regulile tale se aplică în continuare; repornește Mac-ul când poți.",
         ])),
         Section(heading: "5. Modul Silențios (Aprobare inteligentă)", body: .note(
             "Este pornit din prima clipă. Aprobă automat, fără să te întrebe, doar componentele semnate oficial de Apple — altfel ai primi zeci de întrebări în prima oră. Tot ce NU e Apple te întreabă în continuare, de fiecare dată. Ce a aprobat singur vezi în <b>Setări → General → Aprobate automat</b>; tot de acolo îl poți opri.")),
@@ -114,7 +115,7 @@ let ro = Guide(
         Section(heading: "8. Limba și aspectul", body: .text(
             "Aplicația vorbește română, engleză și spaniolă. Implicit urmează limba Mac-ului; în <b>Setări → General → Limbă</b> poți alege una anume. Tot acolo, <b>Temă</b> alege între Sistem, Light și Dark. Ambele se aplică imediat, fără repornire.")),
         Section(heading: "9. Actualizarea", body: .note(
-            "Aplicația verifică actualizările la fiecare pornire. Fereastra are două butoane: <b>„Actualizează acum”</b> descarcă și instalează singur noua versiune — îți cere parola de administrator, apoi aplicația repornește; <b>„Mai târziu”</b> o închide până la versiunea următoare. Nu e o actualizare silențioasă în fundal: tu decizi când se întâmplă.<br/><br/>Există și fereastra <b>„Actualizare critică de securitate”</b>, când motorul de filtrare nu mai e susținut. Aceea nu are „Mai târziu” și reapare la fiecare pornire. Dacă după actualizare meniul arată <b>„Repornește Mac-ul pentru a finaliza actualizarea”</b>, repornește Mac-ul.")),
+            "Aplicația verifică actualizările la fiecare pornire. Fereastra are două butoane: <b>„Actualizează acum”</b> descarcă și instalează singur noua versiune — îți cere parola de administrator, apoi aplicația repornește; <b>„Mai târziu”</b> o închide până la versiunea următoare. Nu e o actualizare silențioasă în fundal: tu decizi când se întâmplă.<br/><br/>Există și fereastra <b>„Actualizare critică de securitate”</b>, când motorul de filtrare nu mai e susținut. Aceea nu are „Mai târziu” și reapare la fiecare pornire. Actualizarea automată înlocuiește și filtrul, cu aceeași parolă, fără repornirea Mac-ului. Dacă instalezi manual o versiune nouă peste una care rulează, aplicația îți cere o singură dată parola de administrator, ca să oprească filtrul vechi înainte să-l pornească pe cel nou.")),
         Section(heading: "10. Dezinstalare", body: .steps([
             "Din arhiva descărcată, dă dublu-click pe <b>Dezinstalare_GDCFirewall.command</b>.",
             "Dacă scriptul spune că extensia e încă instalată, oprește GDC Firewall în <b>Setări de sistem → General → Elemente de conectare și extensii → Extensii de rețea</b>, apoi rulează scriptul din nou.",
@@ -144,7 +145,7 @@ let en = Guide(
             "A firewall has to see every network connection of every app. Apple does not let any program do that without your explicit consent, given once, in System Settings. It protects you; it is not a fault of the app.")),
         Section(heading: "1. Installation", body: .steps([
             "Download the archive from <b>gordas.dev/gdc-firewall</b> and open it. It holds three files: the <b>GDC Firewall</b> app, the uninstall script and this guide.",
-            "Double-click <b>GDC Firewall</b>. If the app is not in your Applications folder, it offers to move itself there: click <b>“Move to Applications”</b>. From there it updates itself and has the right permissions.",
+            "Double-click <b>GDC Firewall</b>. If the app is not in your Applications folder, it offers to move itself there: click <b>“Move to Applications Folder”</b>: it moves itself and relaunches. This is required — macOS only starts the network filter from the Applications folder.",
             "Complete step 0 above.",
         ])),
         Section(heading: "2. Initial setup — other firewalls and importing rules", body: .text(
@@ -182,8 +183,9 @@ let en = Guide(
             "<b>“Protection on”</b> — everything works.",
             "<b>“Filtering off”</b> — you turned filtering off. Turn it back on with the <b>“Filtering on”</b> switch right below.",
             "<b>“Approve the extension in System Settings”</b> — step 0 is not finished.",
-            "<b>“Restart your Mac to finish the update”</b> — after an update, macOS started the new filter before releasing the old one. Filtering works, but without alerts, until you restart. Restart your Mac once.",
-            "<b>“Engine stopped”</b> — the app cannot reach the filter yet. If it does not clear within a few minutes, restart your Mac.",
+            "<b>“Reconnecting to the engine…”</b> — the link between the app and the filter restores itself, usually within a few seconds. Your rules still apply.",
+            "<b>“Engine update postponed”</b> — you installed a new version over a running one and clicked “Cancel” at the administrator password. The app keeps using the old filter, so you are protected. Click <b>“Finish Engine Update…”</b> in the menu and type your password (it stays invisible while you type): the old filter stops and the new one starts within seconds, without restarting your Mac.",
+            "<b>“Restart your Mac to finish the update”</b> — rare, after an update made by an older version of the app. Your rules still apply; restart your Mac when convenient.",
         ])),
         Section(heading: "5. Silent Mode (smart approval)", body: .note(
             "It is on from the very first launch. It silently allows only components officially signed by Apple — otherwise you would face dozens of prompts in the first hour. Anything not from Apple still asks you, every time. Whatever it approved on its own is listed under <b>Settings → General → Approved automatically</b>, where you can also turn it off.")),
@@ -207,7 +209,7 @@ let en = Guide(
         Section(heading: "8. Language and appearance", body: .text(
             "The app speaks Romanian, English and Spanish. By default it follows your Mac's language; in <b>Settings → General → Language</b> you can pick one. In the same place, <b>Theme</b> chooses between System, Light and Dark. Both apply immediately, without a restart.")),
         Section(heading: "9. Updates", body: .note(
-            "The app checks for updates at every launch. The window has two buttons: <b>“Update now”</b> downloads and installs the new version for you — it asks for your administrator password, then the app restarts; <b>“Later”</b> dismisses it until the next version. This is not a silent background update: you decide when it happens.<br/><br/>There is also a <b>“Critical security update”</b> window, shown when the filtering engine is no longer supported. That one has no “Later” and returns at every launch. If after an update the menu reads <b>“Restart your Mac to finish the update”</b>, restart your Mac.")),
+            "The app checks for updates at every launch. The window has two buttons: <b>“Update now”</b> downloads and installs the new version for you — it asks for your administrator password, then the app restarts; <b>“Later”</b> dismisses it until the next version. This is not a silent background update: you decide when it happens.<br/><br/>There is also a <b>“Critical security update”</b> window, shown when the filtering engine is no longer supported. That one has no “Later” and returns at every launch. The automatic update also replaces the filter, with the same password, without restarting your Mac. If you install a new version manually over a running one, the app asks for your administrator password once, to stop the old filter before starting the new one.")),
         Section(heading: "10. Uninstalling", body: .steps([
             "From the downloaded archive, double-click <b>Dezinstalare_GDCFirewall.command</b>.",
             "If the script says the extension is still installed, turn GDC Firewall off in <b>System Settings → General → Login Items &amp; Extensions → Network Extensions</b>, then run the script again.",
@@ -237,7 +239,7 @@ let es = Guide(
             "Un firewall necesita ver cada conexión de red de cada app. Apple no permite que ningún programa haga eso sin tu consentimiento explícito, dado una sola vez, en Ajustes del Sistema. Es una protección para ti, no un fallo de la app.")),
         Section(heading: "1. Instalación", body: .steps([
             "Descarga el archivo comprimido desde <b>gordas.dev/gdc-firewall</b> y ábrelo. Contiene tres archivos: la app <b>GDC Firewall</b>, el script de desinstalación y esta guía.",
-            "Haz doble clic en <b>GDC Firewall</b>. Si la app no está en la carpeta Aplicaciones, te ofrece moverse allí: pulsa <b>«Mover a Aplicaciones»</b>. Desde allí se actualiza sola y tiene los permisos correctos.",
+            "Haz doble clic en <b>GDC Firewall</b>. Si la app no está en la carpeta Aplicaciones, te ofrece moverse allí: pulsa <b>«Mover a la carpeta Aplicaciones»</b>: se mueve y se reinicia sola. Es obligatorio: macOS solo inicia el filtro de red desde la carpeta Aplicaciones.",
             "Completa el paso 0 anterior.",
         ])),
         Section(heading: "2. Configuración inicial — otros firewalls e importación de reglas", body: .text(
@@ -275,8 +277,9 @@ let es = Guide(
             "<b>«Protección activa»</b> — todo funciona.",
             "<b>«Filtrado desactivado»</b> — desactivaste el filtrado. Vuelve a activarlo con el interruptor <b>«Filtrado activo»</b>, justo debajo.",
             "<b>«Aprueba la extensión en Ajustes del Sistema»</b> — el paso 0 no está terminado.",
-            "<b>«Reinicia el Mac para terminar la actualización»</b> — tras una actualización, macOS inició el filtro nuevo antes de liberar el antiguo. El filtrado funciona, pero sin alertas, hasta reiniciar. Reinicia el Mac una vez.",
-            "<b>«Motor detenido»</b> — la app aún no se comunica con el filtro. Si no se resuelve en unos minutos, reinicia el Mac.",
+            "<b>«Reconectando con el motor…»</b> — la conexión entre la app y el filtro se restablece sola, normalmente en unos segundos. Tus reglas se siguen aplicando.",
+            "<b>«Actualización del motor aplazada»</b> — instalaste una versión nueva sobre una que estaba en marcha y pulsaste «Cancelar» en la contraseña de administrador. La app sigue usando el filtro anterior, así que estás protegido. Pulsa <b>«Terminar la actualización del motor…»</b> en el menú y escribe la contraseña (no se ve mientras la escribes): el filtro anterior se detiene y el nuevo arranca en segundos, sin reiniciar el Mac.",
+            "<b>«Reinicia el Mac para terminar la actualización»</b> — poco frecuente, tras una actualización hecha por una versión anterior de la app. Tus reglas se siguen aplicando; reinicia el Mac cuando puedas.",
         ])),
         Section(heading: "5. Modo silencioso (aprobación inteligente)", body: .note(
             "Está activado desde el primer momento. Aprueba en silencio solo los componentes firmados oficialmente por Apple; de lo contrario recibirías decenas de avisos en la primera hora. Todo lo que no sea de Apple te sigue preguntando, siempre. Lo que aprobó por su cuenta aparece en <b>Ajustes → General → Aprobados automáticamente</b>, donde también puedes desactivarlo.")),
@@ -300,7 +303,7 @@ let es = Guide(
         Section(heading: "8. Idioma y apariencia", body: .text(
             "La app habla rumano, inglés y español. Por defecto sigue el idioma del Mac; en <b>Ajustes → General → Idioma</b> puedes elegir uno. En el mismo lugar, <b>Tema</b> elige entre Sistema, Claro y Oscuro. Ambos se aplican al instante, sin reiniciar.")),
         Section(heading: "9. Actualizaciones", body: .note(
-            "La app busca actualizaciones en cada inicio. La ventana tiene dos botones: <b>«Actualizar ahora»</b> descarga e instala sola la nueva versión — te pide la contraseña de administrador y luego la app se reinicia; <b>«Más tarde»</b> la cierra hasta la siguiente versión. No es una actualización silenciosa en segundo plano: tú decides cuándo ocurre.<br/><br/>También existe la ventana <b>«Actualización de seguridad crítica»</b>, cuando el motor de filtrado ya no está soportado. Esa no tiene «Más tarde» y vuelve en cada inicio. Si tras actualizar el menú indica <b>«Reinicia el Mac para terminar la actualización»</b>, reinicia el Mac.")),
+            "La app busca actualizaciones en cada inicio. La ventana tiene dos botones: <b>«Actualizar ahora»</b> descarga e instala sola la nueva versión — te pide la contraseña de administrador y luego la app se reinicia; <b>«Más tarde»</b> la cierra hasta la siguiente versión. No es una actualización silenciosa en segundo plano: tú decides cuándo ocurre.<br/><br/>También existe la ventana <b>«Actualización de seguridad crítica»</b>, cuando el motor de filtrado ya no está soportado. Esa no tiene «Más tarde» y vuelve en cada inicio. La actualización automática también sustituye el filtro, con la misma contraseña y sin reiniciar el Mac. Si instalas manualmente una versión nueva sobre una que está en marcha, la app te pide una sola vez la contraseña de administrador, para detener el filtro anterior antes de iniciar el nuevo.")),
         Section(heading: "10. Desinstalación", body: .steps([
             "Desde el archivo descargado, haz doble clic en <b>Dezinstalare_GDCFirewall.command</b>.",
             "Si el script indica que la extensión sigue instalada, desactiva GDC Firewall en <b>Ajustes del Sistema → General → Ítems de inicio y extensiones → Extensiones de red</b> y vuelve a ejecutar el script.",

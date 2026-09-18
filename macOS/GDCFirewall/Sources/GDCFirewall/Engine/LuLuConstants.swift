@@ -66,6 +66,13 @@ enum LuLu {
     enum Pref {
         static let useBlockList = "useBlockList"
         static let blockList = "blockList"
+        // consts.h:144-154 — modul pasiv (folosit de garda de actualizare).
+        static let passiveMode = "passiveMode"
+        static let passiveModeAction = "passiveModeAction"
+        static let passiveModeRules = "passiveModeRules"
+        static let passiveAllow = 0
+        static let passiveBlock = 1
+        static let passiveRulesNo = 0
     }
 
     /// consts.h:28-33 — `EndpointType`, cum se interpretează `endpointAddr`.

@@ -19,6 +19,8 @@
 "Actualizare" = "Update";
 "Actualizare critică de securitate" = "Critical security update";
 "Actualizarea a eșuat" = "The update failed";
+"Actualizarea motorului a fost amânată." = "The engine update was postponed.";
+"Actualizarea motorului e amânată" = "Engine update postponed";
 "Actualizat: %@" = "Updated: %@";
 "Actualizează acum" = "Update now";
 "Actualizări macOS" = "macOS updates";
@@ -36,6 +38,7 @@
 "Alege procesul sau bifează „Toate procesele”." = "Choose the process or tick “All processes”.";
 "Alege…" = "Choose…";
 "Alerte" = "Alerts";
+"Am înțeles" = "OK";
 "Anulează" = "Cancel";
 "Apasă „Actualizează acum” pentru a descărca și instala automat." = "Click “Update now” to download and install automatically.";
 "Apasă „Importă din fișier…” și alege fișierul salvat. Formatul se recunoaște automat." = "Click “Import from File…” and choose the saved file. The format is detected automatically.";
@@ -145,8 +148,9 @@
 "Filtrare & AdBlock" = "Filtering & AdBlock";
 "Filtrare activă" = "Filtering on";
 "Filtrare oprită" = "Filtering off";
+"Finalizează actualizarea motorului…" = "Finish Engine Update…";
 "Fără verificare de identitate" = "No Identity Check";
-"GDC Firewall rulează în afara folderului Aplicații. Pentru stabilitate (actualizări automate, permisiuni corecte), se recomandă mutarea în /Applications." = "GDC Firewall is running outside the Applications folder. For stability (automatic updates, correct permissions), moving it to /Applications is recommended.";
+"GDC Firewall trebuie să ruleze din folderul Aplicații: macOS pornește filtrul de rețea doar de acolo. Aplicația se mută și repornește singură." = "GDC Firewall must run from the Applications folder: macOS only starts the network filter from there. The app will move itself and relaunch.";
 "Gata" = "Done";
 "Gatekeeper (verificare aplicații)" = "Gatekeeper (app verification)";
 "General" = "General";
@@ -192,8 +196,8 @@
 "Motor oprit" = "Engine stopped";
 "Motorul nu e conectat — regulile apar după conectare." = "The engine is not connected — rules appear once it connects.";
 "Mutare eșuată" = "Move failed";
-"Mutare în Aplicații?" = "Move to Applications?";
-"Mută în Aplicații" = "Move to Applications";
+"Mută în folderul Aplicații" = "Move to Applications Folder";
+"Mută în folderul Aplicații?" = "Move to Applications Folder?";
 "Neactualizat încă" = "Not updated yet";
 "Neaprobate" = "Unapproved";
 "Neidentificat" = "Unidentified";
@@ -213,6 +217,7 @@
 "Nume" = "Name";
 "O listă publică în format hosts (0.0.0.0 domeniu) sau cu un domeniu pe linie. Se îmbină cu StevenBlack la fiecare actualizare." = "A public list in hosts format (0.0.0.0 domain) or with one domain per line. It is merged with StevenBlack on every update.";
 "O nouă actualizare critică de securitate pentru motorul de filtrare este disponibilă. Rulați actualizarea pentru a menține protecția." = "A critical security update for the filtering engine is available. Run the update to maintain protection.";
+"Oprirea versiunii vechi a motorului a eșuat: %@" = "Stopping the old engine version failed: %@";
 "Oprit — nu se blochează niciun domeniu din liste." = "Off — no domains from the lists are blocked.";
 "Orice destinație" = "Any destination";
 "Partajare (AirDrop, Ecran)" = "Sharing (AirDrop, Screen)";
@@ -250,6 +255,7 @@
 "Regulă nouă pentru „%@”" = "New Rule for “%@”";
 "Repară calea procesului…" = "Repair Process Path…";
 "Repară calea…" = "Repair Path…";
+"Repornește Mac-ul ca să finalizezi actualizarea filtrului" = "Restart your Mac to finish the filter update";
 "Repornește Mac-ul pentru a finaliza actualizarea" = "Restart your Mac to finish the update";
 "Rezultat necunoscut la activarea extensiei." = "Unknown result while activating the extension.";
 "Reîncarcă" = "Reload";
@@ -260,9 +266,11 @@
 "Scrie destinația sau bifează „Orice destinație”." = "Enter the destination or tick “Any destination”.";
 "Script Python" = "Python script";
 "Se activează extensia…" = "Activating the extension…";
+"Se actualizează motorul de filtrare…" = "Updating the filtering engine…";
 "Se actualizează…" = "Updating…";
 "Se descarcă actualizarea…" = "Downloading the update…";
 "Se instalează…" = "Installing…";
+"Se reconectează la motor…" = "Reconnecting to the engine…";
 "Semnat de" = "Signed by";
 "Semnătura de pe disc corespunde regulii." = "The signature on disk matches the rule.";
 "Semnătura de pe disc diferă: acum %@ / %@." = "The signature on disk differs: now %@ / %@.";
@@ -315,6 +323,7 @@
 "Versiune nouă disponibilă: %@" = "New version available: %@";
 "Versiunea %@" = "Version %@";
 "Versiunea aplicației" = "App version";
+"acces refuzat" = "access denied";
 "activă" = "active";
 "aplicația Little Snitch nu e instalată — folosește „Din fișier…”" = "the Little Snitch app is not installed — use “From file…”";
 "aplicații absente pe acest Mac" = "apps missing from this Mac";
@@ -323,6 +332,7 @@
 "citire e-mail" = "reading email";
 "cod %d" = "code %d";
 "conține versiunea %@, nu %@" = "contains version %@, not %@";
+"copia din /Applications are versiunea %@" = "the copy in /Applications is version %@";
 "cu alt protocol decât TCP/UDP" = "with a protocol other than TCP/UDP";
 "cu destinație specială (rețea locală, Bonjour…)" = "with a special destination (local network, Bonjour…)";
 "cu interval de adrese" = "with an address range";
@@ -342,6 +352,8 @@
 "fișierul nu e JSON" = "the file is not JSON";
 "format necunoscut" = "unknown format";
 "fără cale" = "without a path";
+"macOS a pornit noua versiune a filtrului fără legătura cu aplicația. Regulile tale se aplică în continuare, dar conexiunile noi sunt permise automat până la repornire." = "macOS started the new filter version without its link to the app. Your rules still apply, but new connections are allowed automatically until you restart.";
+"macOS a pornit noua versiune a filtrului fără legătura cu aplicația. Regulile tale se aplică în continuare, iar conexiunile noi sunt blocate până la repornire." = "macOS started the new filter version without its link to the app. Your rules still apply, and new connections are blocked until you restart.";
 "macOS nu permite unei aplicații să oprească firewall-ul altui producător — pasul acesta îl faci tu, din aplicația lui." = "macOS does not let one app turn off another vendor's firewall — you do this step yourself, from that firewall's own app.";
 "necunoscut" = "unknown";
 "necunoscută" = "unknown";

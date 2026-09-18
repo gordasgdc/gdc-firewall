@@ -45,6 +45,9 @@ enum SelfUpdater {
             progress.setStatus(L("Se descarcă actualizarea…"))
             try await download(from: pkgURL, to: downloaded)
 
+            // Extensia nouă pornește cu preferințele de pe disc: garda o face să
+            // blocheze necunoscutele până se conectează aplicația nouă.
+            _ = await UpdateGuard.engage()
             log.info("Instalez \(version) din \(isZip ? "arhivă .zip" : "pachet .pkg")")
             progress.setStatus(L("Se instalează…"))
             if isZip {
@@ -61,6 +64,7 @@ enum SelfUpdater {
             NSApp.terminate(nil)
         } catch {
             log.error("Actualizarea la \(version) a eșuat: \(error.localizedDescription)")
+            UpdateGuard.release()
             progress.close()
             presentFailure(error, fallbackURL: releasesPageURLForFallback)
         }
@@ -118,7 +122,8 @@ enum SelfUpdater {
     private static func installTarget(for newApp: URL) -> URL {
         let current = Bundle.main.bundleURL
         let parent = current.deletingLastPathComponent().path
-        if parent == "/Applications" || parent == NSHomeDirectory() + "/Applications" {
+        // Doar /Applications: macOS nu activează extensia de rețea din altă parte.
+        if parent == "/Applications" {
             return current
         }
         return URL(fileURLWithPath: "/Applications").appendingPathComponent(newApp.lastPathComponent)
@@ -141,6 +146,13 @@ enum SelfUpdater {
             echo "Instalarea a esuat (cod $status)."
             exit $status
         fi
+        # Inlocuire secventiala a extensiei (vezi EngineService.swift): jobul vechi
+        # se scoate INAINTE ca aplicatia noua sa-si activeze extensia; altfel macOS
+        # o inregistreaza pe cea noua fara serviciul Mach. Suntem deja root.
+        for L in $(launchctl print system | grep -oE '\(EngineService.labelPrefix.replacingOccurrences(of: ".", with: "\\."))[0-9.]+' | sort -u); do
+            echo "Opresc extensia veche: $L"
+            launchctl bootout "system/$L"
+        done
         echo "Pornesc aplicatia actualizata..."
         open -b "\(Bundle.main.bundleIdentifier ?? "dev.gordas.GDCFirewall")"
         rm -rf "\(tempDir.path)"

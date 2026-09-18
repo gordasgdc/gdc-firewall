@@ -1,6 +1,6 @@
 # Stare proiect — GDC Firewall
 
-**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.3.1 · **Ramură:** `main`
+**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.3.2 · **Ramură:** `main`
 
 ---
 
@@ -53,11 +53,11 @@ poate fi trimis de altcineva, iar răspunsul vine pe e-mailul contului.
 
 ## Problemă deschisă
 
-**Actualizarea extensiei lasă daemon-ul fără serviciu XPC până la repornire.**
-Versiunea nouă pornește înainte ca cea veche să elibereze serviciul Mach, iar
-motorul nu reîncearcă. Între timp filtrul permite tot, fără alerte. De decis:
-aplicația detectează situația și cere repornirea Mac-ului, sau altă strategie
-de înlocuire.
+Niciuna blocantă. Cursa de înlocuire a extensiei e rezolvată în v2.3.2 prin
+înlocuire secvențială (verificat manual 2.3.1 → 2.3.2, fără repornire).
+De confirmat live la următorul release (2.3.2 → 2.3.3): calea prin
+actualizarea automată — același `bootout` al jobului vechi, dar rulat de
+scriptul root al SelfUpdater-ului, înainte de relansare.
 
 ## Reluare — de unde continui
 

@@ -407,6 +407,33 @@ T.update({
 "Limbă": ("Language", "Idioma"),
 })
 
+T.update({
+"Repornirea a fost anulată.": ("The restart was cancelled.", "El reinicio se canceló."),
+"Repornirea motorului a eșuat: %@": ("Restarting the engine failed: %@", "No se pudo reiniciar el motor: %@"),
+"Actualizarea motorului de filtrare trebuie finalizată": ("The filtering engine update needs to be finished", "Hay que terminar la actualización del motor de filtrado"),
+"macOS a pornit noua versiune a filtrului înainte s-o oprească pe cea veche, așa că aplicația nu poate comunica încă cu ea. Regulile tale se aplică în continuare, iar conexiunile noi sunt blocate până la finalizare. Finalizarea cere o singură dată parola de administrator — nu e nevoie să repornești Mac-ul.": ("macOS started the new version of the filter before stopping the old one, so the app can't talk to it yet. Your rules still apply, and new connections are blocked until this is finished. Finishing asks for your administrator password once — there's no need to restart your Mac.", "macOS inició la nueva versión del filtro antes de detener la anterior, así que la app aún no puede comunicarse con ella. Tus reglas se siguen aplicando y las conexiones nuevas se bloquean hasta terminar. Para terminar se pide una sola vez la contraseña de administrador; no hace falta reiniciar el Mac."),
+"macOS a pornit noua versiune a filtrului înainte s-o oprească pe cea veche, așa că aplicația nu poate comunica încă cu ea. Regulile tale se aplică în continuare, dar alertele pentru conexiuni noi nu pot apărea până la finalizare. Finalizarea cere o singură dată parola de administrator — nu e nevoie să repornești Mac-ul.": ("macOS started the new version of the filter before stopping the old one, so the app can't talk to it yet. Your rules still apply, but alerts for new connections can't appear until this is finished. Finishing asks for your administrator password once — there's no need to restart your Mac.", "macOS inició la nueva versión del filtro antes de detener la anterior, así que la app aún no puede comunicarse con ella. Tus reglas se siguen aplicando, pero las alertas de conexiones nuevas no pueden aparecer hasta terminar. Para terminar se pide una sola vez la contraseña de administrador; no hace falta reiniciar el Mac."),
+"Finalizează acum": ("Finish now", "Terminar ahora"),
+"Se actualizează motorul de filtrare…": ("Updating the filtering engine…", "Actualizando el motor de filtrado…"),
+"Actualizarea motorului trebuie finalizată": ("The engine update needs to be finished", "Hay que terminar la actualización del motor"),
+"Se repornește motorul de filtrare…": ("Restarting the filtering engine…", "Reiniciando el motor de filtrado…"),
+"Se reconectează la motor…": ("Reconnecting to the engine…", "Reconectando con el motor…"),
+"Actualizarea motorului a fost amânată.": ("The engine update was postponed.", "La actualización del motor se ha aplazado."),
+"Actualizarea motorului e amânată": ("Engine update postponed", "Actualización del motor aplazada"),
+"Am înțeles": ("OK", "Entendido"),
+"GDC Firewall trebuie să ruleze din folderul Aplicații: macOS pornește filtrul de rețea doar de acolo. Aplicația se mută și repornește singură.": ("GDC Firewall must run from the Applications folder: macOS only starts the network filter from there. The app will move itself and relaunch.", "GDC Firewall debe ejecutarse desde la carpeta Aplicaciones: macOS solo inicia el filtro de red desde allí. La app se moverá y se reiniciará sola."),
+"Mută în folderul Aplicații": ("Move to Applications Folder", "Mover a la carpeta Aplicaciones"),
+"Mută în folderul Aplicații?": ("Move to Applications Folder?", "¿Mover a la carpeta Aplicaciones?"),
+"Oprirea versiunii vechi a motorului a eșuat: %@": ("Stopping the old engine version failed: %@", "No se pudo detener la versión anterior del motor: %@"),
+"Repornește Mac-ul ca să finalizezi actualizarea filtrului": ("Restart your Mac to finish the filter update", "Reinicia el Mac para terminar la actualización del filtro"),
+"Repornește Mac-ul pentru a finaliza actualizarea": ("Restart your Mac to finish the update", "Reinicia el Mac para terminar la actualización"),
+"acces refuzat": ("access denied", "acceso denegado"),
+"copia din /Applications are versiunea %@": ("the copy in /Applications is version %@", "la copia en /Applications es la versión %@"),
+"macOS a pornit noua versiune a filtrului fără legătura cu aplicația. Regulile tale se aplică în continuare, dar conexiunile noi sunt permise automat până la repornire.": ("macOS started the new filter version without its link to the app. Your rules still apply, but new connections are allowed automatically until you restart.", "macOS inició la nueva versión del filtro sin su conexión con la app. Tus reglas se siguen aplicando, pero las conexiones nuevas se permiten automáticamente hasta que reinicies."),
+"macOS a pornit noua versiune a filtrului fără legătura cu aplicația. Regulile tale se aplică în continuare, iar conexiunile noi sunt blocate până la repornire.": ("macOS started the new filter version without its link to the app. Your rules still apply, and new connections are blocked until you restart.", "macOS inició la nueva versión del filtro sin su conexión con la app. Tus reglas se siguen aplicando y las conexiones nuevas se bloquean hasta que reinicies."),
+"Finalizează actualizarea motorului…": ("Finish Engine Update…", "Terminar la actualización del motor…"),
+})
+
 # Doar cheile folosite efectiv în cod: nicio traducere moartă în fișiere.
 import json as _json, subprocess as _sp, pathlib as _pl
 _root = _pl.Path(__file__).resolve().parents[2]
