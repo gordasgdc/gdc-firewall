@@ -21,10 +21,13 @@ enum AuxWindowPresenter {
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: size),
-            styleMask: [.titled, .closable, .miniaturizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered, defer: false
         )
         window.title = title
+        // Mărimea dată e cea de pornire, nu o limită: fereastra se poate lărgi
+        // oricât și micșora până la o limită la care conținutul rămâne lizibil.
+        window.contentMinSize = NSSize(width: min(size.width, 320), height: min(size.height, 260))
         window.isReleasedWhenClosed = false
         window.center()
         window.contentView = NSHostingView(rootView: content())

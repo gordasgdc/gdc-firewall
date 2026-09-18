@@ -21,7 +21,7 @@ struct AlertView: View {
             Divider().opacity(0.4)
             actions
         }
-        .frame(width: 440)
+        .frame(minWidth: 400, idealWidth: 440, maxWidth: .infinity)
         .background(VisualEffectView())
     }
 

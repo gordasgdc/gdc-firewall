@@ -1,8 +1,8 @@
 {
-  "version": "2.2.1",
-  "app_version": "2.2.1",
+  "version": "2.3.0",
+  "app_version": "2.3.0",
   "engine_version_required": "4.5.1",
-  "changes": "Jurnal de diagnostic local pentru aplicație, extensie și alerte, ca problemele să poată fi găsite rapid.",
+  "changes": "Fereastra Reguli nouă: bară laterală cu grupuri, sugestii și mentenanță, tabel cu pictograme, meniu contextual complet și panou de detalii. Blocklist StevenBlack pe niveluri, aplicat fiecărei conexiuni. Import și export de reguli din fișier.",
   "download_url": {
     "mac": "https://gordas.dev/gdc-firewall/GDCFirewall-macOS.zip"
   },

@@ -36,6 +36,6 @@ struct AboutView: View {
                 .font(.caption)
         }
         .padding(28)
-        .frame(width: 340)
+        .frame(minWidth: 300, idealWidth: 340, maxWidth: .infinity)
     }
 }

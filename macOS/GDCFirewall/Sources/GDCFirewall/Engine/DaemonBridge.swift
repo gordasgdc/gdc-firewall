@@ -94,6 +94,9 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
                 if ready {
                     self?.reconnectDelay = 2
                     self?.failedReconnects = 0
+                    // Motorul poate fi proaspăt (extensie nouă, repornire):
+                    // îi retrimitem blocklist-ul la fiecare conectare.
+                    BlocklistStore.shared.applyToEngine()
                 }
                 self?.isConnected = ready
                 if ready { self?.reloadRules() }
@@ -147,29 +150,82 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         }
     }
 
+    // MARK: - Acțiuni pe reguli (tabel, meniu contextual, inspector)
+
+    /// Schimbă acțiunea regulii EXISTENTE (ștergere + adăugare cu aceleași
+    /// câmpuri). Înainte se adăuga o regulă nouă pe tot procesul, iar cea
+    /// veche rămânea lângă ea.
     func setAction(_ action: RuleAction, for rule: FirewallRule) {
         log.info("Regulă schimbată de utilizator: \(rule.enginePath) → \(action == .allow ? "permis" : "blocat")")
-        proxy?.addRule([
-            LuLu.Key.path: rule.enginePath,
-            LuLu.Key.action: action.rawValue,
-            LuLu.Key.type: LuLu.RuleType.user,
-            LuLu.Key.scope: LuLu.ActionScope.process,
-            LuLu.Key.duration: LuLu.Duration.always,
-            LuLu.Key.userID: Int(getuid())
-        ])
-        if let index = rules.firstIndex(of: rule) {
-            rules[index].action = action
-            rules[index].origin = .user
-        }
+        replace(rule, with: rule.engineInfo(action: action))
     }
 
-    func delete(_ rule: FirewallRule) {
-        // `deleteRule` cere ȘI cheia (calea), ȘI uuid-ul regulii — a doua
-        // fiindcă un singur binar poate avea mai multe reguli, câte una per
-        // endpoint. Ștergerea „pe cale” ar șterge prima găsită, la nimereală.
-        log.info("Regulă ștearsă: \(rule.enginePath) (\(rule.endpointAddr):\(rule.endpointPort))")
-        proxy?.deleteRule(rule.engineKey, rule: rule.uuid)
-        rules.removeAll { $0.id == rule.id }
+    func setEnabled(_ enabled: Bool, for rules: [FirewallRule]) {
+        guard let proxy else { return }
+        for rule in rules {
+            proxy.toggleRule(rule.engineKey, rule: rule.uuid,
+                             state: NSNumber(value: enabled ? LuLu.RuleToggle.enable : LuLu.RuleToggle.disable))
+        }
+        log.info("\(enabled ? "Activate" : "Dezactivate"): \(rules.count) reguli")
+        reloadRules()
+    }
+
+    func add(_ info: [String: Any]) {
+        log.info("Regulă nouă: \(info[LuLu.Key.path] ?? "?") → \(info[LuLu.Key.endpointAddr] ?? "*"):\(info[LuLu.Key.endpointPort] ?? "*")")
+        proxy?.addRule(info)
+        reloadRules()
+    }
+
+    /// Ștergere + adăugare, pe aceeași conexiune XPC: motorul le primește în ordine.
+    func replace(_ rule: FirewallRule, with info: [String: Any]) {
+        guard let proxy else { return }
+        proxy.deleteRule(rule.engineKey, rule: rule.uuid)
+        proxy.addRule(info)
+        reloadRules()
+    }
+
+    func duplicate(_ rule: FirewallRule) { add(rule.engineInfo()) }
+
+    /// Aceeași destinație și acțiune, pentru toate procesele (calea `*`).
+    func makeGlobal(_ rule: FirewallRule) { add(rule.engineInfo(path: "*")) }
+
+    /// Executabil mutat/redenumit: regula trece pe calea nouă.
+    func repairPath(of rule: FirewallRule, to path: String) {
+        log.info("Cale reparată: \(rule.enginePath) → \(path)")
+        replace(rule, with: rule.engineInfo(path: path))
+    }
+
+    /// O regulă pasivă (creată fără decizia utilizatorului) devine regula lui.
+    func approve(_ rules: [FirewallRule]) {
+        for rule in rules where rule.isUnapproved { replace(rule, with: rule.engineInfo()) }
+        log.info("Aprobate: \(rules.count) reguli")
+    }
+
+    func delete(_ rule: FirewallRule) { delete([rule]) }
+
+    func delete(_ rules: [FirewallRule]) {
+        // `deleteRule` cere ȘI cheia, ȘI uuid-ul regulii — a doua fiindcă un
+        // binar poate avea mai multe reguli, câte una per destinație.
+        for rule in rules {
+            log.info("Regulă ștearsă: \(rule.enginePath) (\(rule.endpointAddr):\(rule.endpointPort))")
+            proxy?.deleteRule(rule.engineKey, rule: rule.uuid)
+        }
+        let ids = Set(rules.map(\.id))
+        self.rules.removeAll { ids.contains($0.id) }
+    }
+
+    // MARK: - Preferințele motorului
+
+    /// Blocklist-ul, lista de excepții etc. — aplicate de motor fiecărei
+    /// conexiuni, nu doar celor care ajung la o alertă.
+    func updatePreferences(_ preferences: [String: Any]) {
+        guard let proxy else {
+            log.warning("Preferințe netrimise (motor neconectat): \(preferences.keys.sorted())")
+            return
+        }
+        proxy.updatePreferences(preferences) { [weak self] _ in
+            self?.log.info("Preferințe aplicate în motor: \(preferences.keys.sorted().joined(separator: ", "))")
+        }
     }
 
     /// Import: câte un `addRule` per regulă, calea pe care o folosesc și

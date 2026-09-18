@@ -30,6 +30,7 @@ private struct MenuBarContent: View {
     @ObservedObject private var bridge = DaemonBridge.shared
     @ObservedObject private var autoPilot = AutoPilot.shared
     @ObservedObject private var sysex = SystemExtensionInstaller.shared
+    @ObservedObject private var blocklist = BlocklistStore.shared
     @Environment(\.openWindow) private var openWindow
 
     /// Până la aprobarea din Setări aplicația pare pornită și nu filtrează
@@ -65,6 +66,19 @@ private struct MenuBarContent: View {
             .keyboardShortcut("r")
 
         Toggle(L("Mod Silențios"), isOn: $autoPilot.isEnabled)
+        Menu(L("Blocklist")) {
+            Toggle(L("Blocklist StevenBlack"), isOn: Binding(get: { blocklist.isEnabled }, set: { blocklist.setEnabled($0) }))
+            Divider()
+            ForEach(BlocklistTier.allCases) { tier in
+                Toggle(tier.title, isOn: Binding(get: { blocklist.tiers.contains(tier) }, set: { blocklist.setTier(tier, enabled: $0) }))
+            }
+            .disabled(!blocklist.isEnabled)
+            Divider()
+            Text(blocklist.isUpdating ? L("Se actualizează…") : L("%@ domenii blocate", blocklist.domainCount.formatted()))
+            Button(L("Actualizează acum")) { blocklist.refresh() }
+                .disabled(blocklist.isUpdating || !blocklist.isEnabled)
+            Button(L("Detalii blocklist…")) { openWindow(id: "rules") }
+        }
         Button(L("Importă reguli din alte firewall-uri…")) { AuxWindowPresenter.showSetup() }
 
         Divider()

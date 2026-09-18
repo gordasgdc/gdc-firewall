@@ -56,6 +56,18 @@ enum LuLu {
         static let process = 103
     }
 
+    /// consts.h:387-388 — `RULE_TOGGLE_STATE_*`.
+    enum RuleToggle {
+        static let enable = 1
+        static let disable = 0
+    }
+
+    /// consts.h:193-202 — preferințele de blocklist / listă de excepții.
+    enum Pref {
+        static let useBlockList = "useBlockList"
+        static let blockList = "blockList"
+    }
+
     /// consts.h:28-33 — `EndpointType`, cum se interpretează `endpointAddr`.
     enum EndpointType {
         static let exact = 0

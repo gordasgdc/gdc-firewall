@@ -8,7 +8,7 @@ struct SettingsView: View {
             FilteringSettings()
                 .tabItem { Label(L("Filtrare & AdBlock"), systemImage: "shield.lefthalf.filled") }
         }
-        .frame(width: 520)
+        .frame(minWidth: 480, idealWidth: 560, maxWidth: .infinity, minHeight: 360, maxHeight: .infinity)
     }
 }
 
@@ -63,90 +63,7 @@ private struct GeneralSettings: View {
 
 // MARK: - Filtrare & AdBlock
 
-/// Nivelele de blocare a domeniilor. Sunt trei comutatoare, nu un slider,
-/// fiindcă fiecare nivel răspunde la o întrebare diferită — iar „Maxim”
-/// (pornografie/pariuri) e o alegere personală, nu un pas de securitate
-/// mai avansat.
+/// Aceeași vizualizare ca în fereastra Reguli → Blocklist-uri.
 private struct FilteringSettings: View {
-    @ObservedObject private var store = BlocklistStore.shared
-
-    /// „acum 5 minute” / „5 minutes ago” / „hace 5 minutos” — în limba aleasă
-    /// în aplicație, nu în cea a sistemului.
-    private static func relative(_ date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(identifier: Lang.current.rawValue)
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
-
-    var body: some View {
-        Form {
-            Section {
-                ForEach(BlocklistLevel.allCases) { level in
-                    VStack(alignment: .leading, spacing: 3) {
-                        Toggle(level.title, isOn: Binding(
-                            get: { store.enabledLevels.contains(level) },
-                            set: { store.setLevel(level, enabled: $0) }
-                        ))
-                        Text(level.summary)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 2)
-                }
-            } header: {
-                Text(L("Nivele de filtrare"))
-            } footer: {
-                Text(L("Nivelele se adună: dacă bifezi Maxim, primești și ce blochează Minim și Mediu."))
-                    .font(.caption)
-            }
-
-            Section {
-                LabeledContent(L("Domenii în listă")) {
-                    Text(store.domainCount == 0 ? "—" : "\(store.domainCount)")
-                        .monospacedDigit()
-                }
-                LabeledContent(L("Ultima actualizare")) {
-                    if let date = store.lastUpdated {
-                        Text(Self.relative(date))
-                    } else {
-                        Text(L("niciodată"))
-                    }
-                }
-
-                HStack {
-                    Button(L("Actualizare liste")) { store.refresh() }
-                        .disabled(store.isUpdating || store.enabledLevels.isEmpty)
-                    if store.isUpdating {
-                        ProgressView().controlSize(.small)
-                    }
-                }
-
-                if let error = store.lastError {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
-            } header: {
-                Text(L("Listele"))
-            } footer: {
-                Text(L("Sursa e proiectul open-source StevenBlack/hosts. Listele se țin local, în memorie — filtrarea nu trimite nimic în afară și nu încetinește navigarea."))
-                    .font(.caption)
-            }
-
-            if !store.allowList.isEmpty {
-                Section(L("Excepții (permise de tine)")) {
-                    ForEach(Array(store.allowList).sorted(), id: \.self) { host in
-                        HStack {
-                            Text(host).font(.caption.monospaced())
-                            Spacer()
-                            Button(L("Elimină")) { store.removeFromAllowList(host) }
-                                .buttonStyle(.link)
-                        }
-                    }
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .padding(.vertical, 8)
-    }
+    var body: some View { BlocklistView() }
 }

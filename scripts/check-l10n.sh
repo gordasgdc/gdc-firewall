@@ -86,7 +86,7 @@ for lang in ("en", "es"):
     failed |= bool(missing)
 
 # Texte de interfață rămase neîmpachetate. Mărcile și „OK” nu se traduc.
-ALLOWED = {"OK", "GDC Firewall", "—"}
+ALLOWED = {"OK", "GDC Firewall", "—", "StevenBlack", "https://…"}
 ui_re = re.compile(
     r'(?:\b(?:Text|Button|Toggle|Label|TextField|Picker|Section|DisclosureGroup|LabeledContent|ProgressView|Window|MenuBarExtra)\(\s*'
     r'|\.help\(\s*|\.accessibilityLabel\(\s*|withTitle:\s*|setStatus\(\s*|title:\s*'
@@ -97,7 +97,8 @@ for f in sorted(src.rglob("*.swift")):
             continue
         for m in ui_re.finditer(line):
             text = unescape(m.group(1))
-            if text in ALLOWED or text.startswith("©") or not re.search(r"[A-Za-zĂÂÎȘȚăâîșț]", text) or text.startswith("\\("):
+            literal = re.sub(r"\\\(.*\)", "", text)   # fără interpolările Swift
+            if text in ALLOWED or text.startswith("©") or not re.search(r"[A-Za-zĂÂÎȘȚăâîșț]", literal):
                 continue
             print(f"‼️  text neimpachetat in L(): {f.relative_to(src)}:{n}: {json.dumps(text, ensure_ascii=False)}")
             failed = True

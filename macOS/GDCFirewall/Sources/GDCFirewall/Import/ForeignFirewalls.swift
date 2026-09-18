@@ -160,6 +160,12 @@ enum RuleImporter {
         } catch {
             throw ImportError.unreadable(error.localizedDescription)
         }
+        return try importLuLu(archive: data, existing: existing)
+    }
+
+    /// `rules.plist` al LuLu (arhivă `NSKeyedArchiver` de obiecte `Rule`) —
+    /// citit direct de pe disc sau ales cu „Din fișier…”.
+    static func importLuLu(archive data: Data, existing: Set<String>) throws -> ImportReport {
         let allowed: [AnyClass] = [NSDictionary.self, NSArray.self, NSString.self, NSNumber.self,
                                    NSSet.self, NSMutableSet.self, NSDate.self]
             + (NSClassFromString("Rule").map { [$0] } ?? [])

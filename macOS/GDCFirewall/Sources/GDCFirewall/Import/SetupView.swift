@@ -35,6 +35,13 @@ struct SetupView: View {
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    manualExportGuide
+                    if let result = results["file"] {
+                        Text(result)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -52,7 +59,7 @@ struct SetupView: View {
             }
         }
         .padding(24)
-        .frame(minWidth: 520, minHeight: 420)
+        .frame(minWidth: 480, idealWidth: 580, maxWidth: .infinity, minHeight: 400, idealHeight: 560, maxHeight: .infinity)
         .task {
             firewalls = await Task.detached { ForeignFirewalls.detect() }.value
             loading = false
@@ -73,8 +80,8 @@ struct SetupView: View {
             HStack {
                 Button(L("Importă regulile")) { importRules(from: firewall) }
                 if firewall.kind == .littleSnitch {
-                    Button(L("Din fișier…")) { importFromFile(firewall) }
-                        .help(L("Un fișier .lsrules sau un export JSON salvat din Little Snitch"))
+                    Button(L("Din fișier…")) { importFromFile(resultKey: firewall.id) }
+                        .help(L("Un export salvat din Little Snitch sau LuLu (.json, .lsrules, .plist)"))
                 }
                 if firewall.kind == .littleSnitch || firewall.extensionState != nil {
                     Button(L("Cum îl opresc")) {
@@ -118,7 +125,7 @@ struct SetupView: View {
 
     private func importRules(from firewall: ForeignFirewall) {
         let existing = bridge.ruleSignatures
-        run(firewall) {
+        run(firewall.id) {
             switch firewall.kind {
             case .lulu:
                 return try RuleImporter.importLuLu(existing: existing)
@@ -132,31 +139,67 @@ struct SetupView: View {
         }
     }
 
-    private func importFromFile(_ firewall: ForeignFirewall) {
+    /// Ghidul pentru exportul manual: pentru cine nu vrea să dea parola de
+    /// administrator (Little Snitch) sau are regulile pe alt Mac.
+    private var manualExportGuide: some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: 10) {
+                guideStep("1", L("Little Snitch: deschide Little Snitch, apoi meniul File → Export Model… și salvează fișierul (.json)."))
+                guideStep("2", L("LuLu: deschide LuLu → Rules → Export și salvează fișierul rules.json. Poți alege și rules.plist din /Library/Objective-See/LuLu."))
+                guideStep("3", L("Apasă „Importă din fișier…” și alege fișierul salvat. Formatul se recunoaște automat."))
+                Button(L("Importă din fișier…")) { importFromFile(resultKey: "file") }
+                    .disabled(busy != nil || !bridge.isConnected)
+            }
+            .padding(.top, 6)
+        } label: {
+            Label(L("Export manual, pas cu pas"), systemImage: "list.number")
+                .font(.headline)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func guideStep(_ number: String, _ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(number)
+                .font(.caption.weight(.bold))
+                .frame(minWidth: 18, minHeight: 18)
+                .background(.quaternary, in: Circle())
+            Text(text)
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// NSOpenPanel cu formatele acceptate; formatul real se recunoaște din
+    /// conținut (RuleImporter.importFile).
+    private func importFromFile(resultKey: String) {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.json] + [UTType(filenameExtension: "lsrules")].compactMap { $0 }
-        panel.message = L("Alege regulile exportate din Little Snitch (.lsrules sau JSON)")
+        panel.allowedContentTypes = RuleImporter.fileTypes
+        panel.allowsOtherFileTypes = true
+        panel.message = L("Alege fișierul exportat din Little Snitch sau LuLu (.json, .lsrules, .plist)")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let existing = bridge.ruleSignatures
-        run(firewall) {
-            try RuleImporter.importLittleSnitch(data: Data(contentsOf: url), existing: existing)
+        run(resultKey) {
+            try RuleImporter.importFile(at: url, existing: existing)
         }
     }
 
     /// Exportul Little Snitch așteaptă parola de administrator, iar citirea
     /// regulilor LuLu atinge discul — ambele în afara firului principal.
-    private func run(_ firewall: ForeignFirewall, _ work: @escaping () throws -> ImportReport) {
-        busy = firewall.id
-        results[firewall.id] = nil
+    private func run(_ key: String, _ work: @escaping () throws -> ImportReport) {
+        busy = key
+        results[key] = nil
         Task {
             let outcome = await Task.detached { Result { try work() } }.value
             busy = nil
             switch outcome {
             case .success(let report):
                 bridge.addImportedRules(report.rules)
-                results[firewall.id] = report.summary
+                results[key] = report.summary
             case .failure(let error):
-                results[firewall.id] = error.localizedDescription
+                results[key] = error.localizedDescription
             }
         }
     }

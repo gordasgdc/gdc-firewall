@@ -42,7 +42,7 @@ final class AlertWindowController: NSObject, NSWindowDelegate {
 
         let window = NSWindow(
             contentRect: .zero,
-            styleMask: [.titled, .fullSizeContentView],
+            styleMask: [.titled, .fullSizeContentView, .resizable],
             backing: .buffered,
             defer: false
         )
@@ -55,6 +55,9 @@ final class AlertWindowController: NSObject, NSWindowDelegate {
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.contentView = NSHostingView(rootView: view)
+        // Redimensionabilă (texte lungi, text mărit), dar nu sub lățimea la
+        // care butoanele încap pe un rând.
+        window.contentMinSize = NSSize(width: 400, height: 300)
         window.delegate = self
         window.center()
 

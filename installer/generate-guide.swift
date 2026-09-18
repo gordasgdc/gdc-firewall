@@ -69,7 +69,7 @@ let ro = Guide(
         Section(heading: "Importul din Little Snitch", body: .steps([
             "Apasă <b>„Importă regulile”</b> pe cardul Little Snitch.",
             "macOS îți cere parola de administrator: Little Snitch își dă regulile doar unui administrator. Scrie parola (nu se vede cât tastezi) și apasă Enter.",
-            "Dacă nu vrei să dai parola, exportă regulile din Little Snitch într-un fișier și apasă <b>„Din fișier…”</b>, apoi alege fișierul <b>.lsrules</b> sau <b>.json</b>.",
+            "Dacă nu vrei să dai parola, deschide pașii <b>„Export manual, pas cu pas”</b>: în Little Snitch, meniul <b>File → Export Model…</b> salvează regulile într-un fișier. Apoi apasă <b>„Importă din fișier…”</b> și alege-l. La fel pentru LuLu: <b>Rules → Export</b>. Fișierele <b>.json</b>, <b>.lsrules</b> și <b>.plist</b> se recunosc automat.",
             "Unele reguli Little Snitch nu au echivalent în GDC Firewall: conexiunile de intrare, regulile „întreabă”, intervalele de porturi sau de adrese și destinațiile speciale (rețeaua locală, Bonjour). Acestea sunt sărite și numărate în rezultat — nicio regulă nu devine mai largă decât era.",
         ])),
         Section(heading: "Oprirea celuilalt firewall", body: .note(
@@ -94,18 +94,22 @@ let ro = Guide(
         ])),
         Section(heading: "5. Modul Silențios (Aprobare inteligentă)", body: .note(
             "Este pornit din prima clipă. Aprobă automat, fără să te întrebe, doar componentele semnate oficial de Apple — altfel ai primi zeci de întrebări în prima oră. Tot ce NU e Apple te întreabă în continuare, de fiecare dată. Ce a aprobat singur vezi în <b>Setări → General → Aprobate automat</b>; tot de acolo îl poți opri.")),
-        Section(heading: "6. Panoul de reguli", body: .bullets([
-            "Se deschide din meniu: <b>„Reguli…”</b>.",
-            "<b>Aplicații Verificate</b> — programele cărora le-ai dat voie pe internet. <b>Servicii Sistem</b> — componentele macOS. <b>Reguli Blocate</b> — tot ce ai oprit.",
-            "Fiecare rând are numele aplicației pe înțelesul tuturor, numele tehnic dedesubt și un comutator. Muți comutatorul și regula se schimbă imediat.",
-            "Coșul de gunoi din dreapta șterge regula — data viitoare vei fi întrebat din nou despre acel program.",
+        Section(heading: "6. Fereastra Reguli", body: .bullets([
+            "Se deschide din meniu: <b>„Reguli…”</b>. Are trei părți: bara laterală din stânga, tabelul din mijloc și panoul de detalii din dreapta (butonul <b>Inspector</b> îl arată sau îl ascunde). Fereastra și fiecare parte se pot lărgi sau îngusta trăgând de margini.",
+            "<b>Reguli</b>: <b>Toate regulile</b>, <b>Active</b>, <b>Blocate</b>, <b>Schimbări recente</b> (ultimele 7 zile), <b>Temporare</b> și <b>Neaprobate</b> — regulile create automat cât interfața nu era pornită, cu un număr roșu lângă ele. Butonul <b>„Aprobă toate”</b> le transformă în regulile tale.",
+            "<b>Grupuri de reguli</b>: <b>Servicii iCloud</b>, <b>Servicii macOS</b>, <b>Aplicații Apple</b>, <b>Aplicații terțe</b>. Comutatorul de lângă fiecare grup îl activează sau îl dezactivează în întregime; clic dreapta pe grup: Editează, Exportă regulile…, Activează/Dezactivează grupul, Șterge….",
+            "<b>Sugestii</b> și <b>Mentenanță</b>: reguli <b>Expirate</b>, <b>Redundante</b> (dublate), cu <b>Identitate schimbată</b> (programul de pe disc nu mai e cel aprobat), <b>Fără verificare de identitate</b> (programe nesemnate) și cu <b>Executabil lipsă</b>.",
+            "Tabelul arată pictograma aplicației, numele ei, starea (<b>Permis</b>, <b>Blocat</b> sau <b>Dezactivată</b>) și destinația. Clic pe titlul unei coloane sortează; câmpul de căutare filtrează după proces, cale sau destinație.",
+            "Clic dreapta pe o regulă: <b>Regulă nouă pentru „…”</b>, <b>Duplică</b>, <b>Editează regula…</b>, <b>Transformă în regulă globală</b>, <b>Activează/Dezactivează</b>, <b>Copiază regula / calea / domeniile</b>, <b>Arată în Finder</b>, <b>Repară calea procesului…</b> (dacă programul a fost mutat), <b>Arată doar regulile pentru „…”</b>, <b>Exportă…</b>, <b>Șterge</b>. Dublu-clic deschide editorul.",
+            "Panoul de detalii arată calea, identitatea (ID cod, Team ID, cine a semnat și dacă semnătura de pe disc mai corespunde), proprietarul, data creării și de unde vine regula. Dacă programul nu mai există, apare un avertisment cu butonul <b>„Repară calea…”</b>.",
         ])),
-        Section(heading: "7. Filtrare și AdBlock — cele trei nivele", body: .bullets([
-            "<b>Minim (Recomandat)</b> — blochează domeniile confirmate de malware, phishing și telemetrie agresivă.",
-            "<b>Mediu</b> — adaugă reclamele comune și scripturile de urmărire.",
-            "<b>Maxim</b> — adaugă conținutul pentru adulți și site-urile de jocuri de noroc. Potrivit pentru un Mac folosit de copii.",
-            "Nivelele se adună: dacă bifezi Maxim, primești și ce blochează Minim și Mediu. Butonul <b>„Actualizare liste”</b> descarcă ultima versiune.",
-            "Listele vin din proiectul public StevenBlack/hosts și rulează local — nu se trimite nimic în afară.",
+        Section(heading: "7. Blocklist StevenBlack", body: .bullets([
+            "Se configurează din bara laterală a ferestrei Reguli → <b>Blocklist-uri</b> → <b>StevenBlack</b>, din meniul <b>Blocklist</b> din bara de sus sau din <b>Setări → Filtrare &amp; AdBlock</b>.",
+            "Comutatorul <b>„Blocklist StevenBlack”</b> îl pornește sau îl oprește; alături vezi câte domenii sunt blocate și butonul <b>„Actualizează acum”</b>.",
+            "Baza <b>Unified</b> (reclame, malware, urmărire) e mereu inclusă. Peste ea poți bifa niveluri: <b>+Știri false</b>, <b>+Jocuri de noroc</b>, <b>+Pornografie</b>, <b>+Rețele sociale</b>. Listele bifate se îmbină automat într-una singură, fără dubluri.",
+            "<b>Adaugă blocklist…</b> adaugă o listă publică proprie (adresă web a unui fișier hosts sau cu un domeniu pe linie); se îmbină și ea la fiecare actualizare.",
+            "<b>Verifică un domeniu</b> îți spune dacă un site e pe listă; <b>„Permite acest domeniu”</b> îl trece la <b>Excepții</b>, care au mereu prioritate.",
+            "Blocarea o face motorul de filtrare, pentru fiecare conexiune a fiecărei aplicații — inclusiv a celor pe care le-ai permis deja. Listele se descarcă din proiectul public StevenBlack/hosts și rămân pe Mac-ul tău.",
         ])),
         Section(heading: "8. Limba și aspectul", body: .text(
             "Aplicația vorbește română, engleză și spaniolă. Implicit urmează limba Mac-ului; în <b>Setări → General → Limbă</b> poți alege una anume. Tot acolo, <b>Temă</b> alege între Sistem, Light și Dark. Ambele se aplică imediat, fără repornire.")),
@@ -158,7 +162,7 @@ let en = Guide(
         Section(heading: "Importing from Little Snitch", body: .steps([
             "Click <b>“Import rules”</b> on the Little Snitch card.",
             "macOS asks for your administrator password: Little Snitch hands its rules only to an administrator. Type it (it stays invisible) and press Enter.",
-            "If you prefer not to enter the password, export the rules from Little Snitch to a file, click <b>“From file…”</b> and choose the <b>.lsrules</b> or <b>.json</b> file.",
+            "If you prefer not to enter the password, open <b>“Manual export, step by step”</b>: in Little Snitch, the <b>File → Export Model…</b> menu saves the rules to a file. Then click <b>“Import from File…”</b> and choose it. The same works for LuLu: <b>Rules → Export</b>. <b>.json</b>, <b>.lsrules</b> and <b>.plist</b> files are recognized automatically.",
             "Some Little Snitch rules have no equivalent in GDC Firewall: incoming connections, “ask” rules, port or address ranges, and special destinations (local network, Bonjour). They are skipped and counted in the result — no rule ever becomes broader than it was.",
         ])),
         Section(heading: "Turning the other firewall off", body: .note(
@@ -183,18 +187,22 @@ let en = Guide(
         ])),
         Section(heading: "5. Silent Mode (smart approval)", body: .note(
             "It is on from the very first launch. It silently allows only components officially signed by Apple — otherwise you would face dozens of prompts in the first hour. Anything not from Apple still asks you, every time. Whatever it approved on its own is listed under <b>Settings → General → Approved automatically</b>, where you can also turn it off.")),
-        Section(heading: "6. The rules panel", body: .bullets([
-            "Open it from the menu: <b>“Rules…”</b>.",
-            "<b>Verified Apps</b> — programs you allowed onto the internet. <b>System Services</b> — macOS components. <b>Blocked Rules</b> — everything you stopped.",
-            "Each row shows the app's plain-language name, the technical name below and a switch. Flip the switch and the rule changes immediately.",
-            "The trash icon on the right deletes the rule — next time you will be asked about that program again.",
+        Section(heading: "6. The Rules window", body: .bullets([
+            "Open it from the menu: <b>“Rules…”</b>. It has three parts: the sidebar on the left, the table in the middle and the details panel on the right (the <b>Inspector</b> button shows or hides it). The window and each part can be widened or narrowed by dragging their edges.",
+            "<b>Rules</b>: <b>All Rules</b>, <b>Active</b>, <b>Deny</b>, <b>Recent Changes</b> (last 7 days), <b>Temporary</b> and <b>Unapproved</b> — rules created automatically while the interface wasn't running, with a red count next to them. The <b>“Approve All”</b> button turns them into your own rules.",
+            "<b>Rule Groups</b>: <b>iCloud Services</b>, <b>macOS Services</b>, <b>Apple Apps</b>, <b>Third-Party Apps</b>. The switch next to each group enables or disables it as a whole; right-click a group for Edit, Export Rules…, Enable/Disable Group, Delete….",
+            "<b>Suggestions</b> and <b>Maintenance</b>: <b>Expired</b>, <b>Redundant</b> (duplicated) rules, <b>Identity Mismatch</b> (the program on disk is no longer the approved one), <b>No Identity Check</b> (unsigned programs) and <b>Missing Executable</b>.",
+            "The table shows the app icon, its name, the status (<b>Allowed</b>, <b>Blocked</b> or <b>Disabled</b>) and the destination. Click a column title to sort; the search field filters by process, path or destination.",
+            "Right-click a rule: <b>New Rule for “…”</b>, <b>Duplicate</b>, <b>Edit Rule…</b>, <b>Turn into Global Rule</b>, <b>Enable/Disable</b>, <b>Copy Rule / Process Path / Domains</b>, <b>Show in Finder</b>, <b>Repair Process Path…</b> (if the program was moved), <b>Focus on Rules Affecting “…”</b>, <b>Export…</b>, <b>Delete</b>. Double-click opens the editor.",
+            "The details panel shows the path, the identity (Code ID, Team ID, who signed it and whether the signature on disk still matches), the owner, the creation date and where the rule came from. If the program no longer exists, a warning appears with a <b>“Repair Path…”</b> button.",
         ])),
-        Section(heading: "7. Filtering and ad blocking — three levels", body: .bullets([
-            "<b>Minimum (Recommended)</b> — blocks confirmed malware, phishing and aggressive telemetry domains.",
-            "<b>Medium</b> — adds common ads and tracking scripts.",
-            "<b>Maximum</b> — adds adult content and gambling sites. Suitable for a Mac used by children.",
-            "Levels add up: ticking Maximum also gives you Minimum and Medium. The <b>“Update lists”</b> button downloads the latest version.",
-            "Lists come from the public StevenBlack/hosts project and run locally — nothing is sent out.",
+        Section(heading: "7. StevenBlack blocklist", body: .bullets([
+            "Configure it from the Rules window sidebar → <b>Blocklists</b> → <b>StevenBlack</b>, from the <b>Blocklist</b> menu in the menu bar, or from <b>Settings → Filtering &amp; AdBlock</b>.",
+            "The <b>“StevenBlack blocklist”</b> switch turns it on or off; next to it you see how many domains are blocked and the <b>“Update now”</b> button.",
+            "The <b>Unified</b> base (ads, malware, tracking) is always included. On top of it you can tick levels: <b>+Fake news</b>, <b>+Gambling</b>, <b>+Porn</b>, <b>+Social media</b>. The ticked lists are merged automatically into one, without duplicates.",
+            "<b>Add blocklist…</b> adds a public list of your own (the web address of a hosts file or of a list with one domain per line); it is merged on every update too.",
+            "<b>Check a domain</b> tells you whether a site is on the list; <b>“Allow this domain”</b> moves it to <b>Exceptions</b>, which always win.",
+            "Blocking is done by the filtering engine, for every connection of every app — including apps you have already allowed. The lists are downloaded from the public StevenBlack/hosts project and stay on your Mac.",
         ])),
         Section(heading: "8. Language and appearance", body: .text(
             "The app speaks Romanian, English and Spanish. By default it follows your Mac's language; in <b>Settings → General → Language</b> you can pick one. In the same place, <b>Theme</b> chooses between System, Light and Dark. Both apply immediately, without a restart.")),
@@ -247,7 +255,7 @@ let es = Guide(
         Section(heading: "Importar desde Little Snitch", body: .steps([
             "Pulsa <b>«Importar reglas»</b> en la tarjeta de Little Snitch.",
             "macOS te pide la contraseña de administrador: Little Snitch solo entrega sus reglas a un administrador. Escríbela (no se ve) y pulsa Intro.",
-            "Si prefieres no dar la contraseña, exporta las reglas de Little Snitch a un archivo, pulsa <b>«Desde archivo…»</b> y elige el archivo <b>.lsrules</b> o <b>.json</b>.",
+            "Si prefieres no dar la contraseña, abre <b>«Exportación manual, paso a paso»</b>: en Little Snitch, el menú <b>File → Export Model…</b> guarda las reglas en un archivo. Luego pulsa <b>«Importar desde archivo…»</b> y elígelo. Lo mismo para LuLu: <b>Rules → Export</b>. Los archivos <b>.json</b>, <b>.lsrules</b> y <b>.plist</b> se reconocen automáticamente.",
             "Algunas reglas de Little Snitch no tienen equivalente en GDC Firewall: conexiones entrantes, reglas «preguntar», rangos de puertos o de direcciones y destinos especiales (red local, Bonjour). Se omiten y se cuentan en el resultado: ninguna regla se vuelve más amplia de lo que era.",
         ])),
         Section(heading: "Desactivar el otro firewall", body: .note(
@@ -272,18 +280,22 @@ let es = Guide(
         ])),
         Section(heading: "5. Modo silencioso (aprobación inteligente)", body: .note(
             "Está activado desde el primer momento. Aprueba en silencio solo los componentes firmados oficialmente por Apple; de lo contrario recibirías decenas de avisos en la primera hora. Todo lo que no sea de Apple te sigue preguntando, siempre. Lo que aprobó por su cuenta aparece en <b>Ajustes → General → Aprobados automáticamente</b>, donde también puedes desactivarlo.")),
-        Section(heading: "6. El panel de reglas", body: .bullets([
-            "Se abre desde el menú: <b>«Reglas…»</b>.",
-            "<b>Apps verificadas</b> — programas a los que diste acceso a internet. <b>Servicios del sistema</b> — componentes de macOS. <b>Reglas bloqueadas</b> — todo lo que has detenido.",
-            "Cada fila muestra el nombre sencillo de la app, el nombre técnico debajo y un interruptor. Al moverlo, la regla cambia al instante.",
-            "El icono de papelera a la derecha elimina la regla: la próxima vez se te volverá a preguntar por ese programa.",
+        Section(heading: "6. La ventana Reglas", body: .bullets([
+            "Se abre desde el menú: <b>«Reglas…»</b>. Tiene tres partes: la barra lateral a la izquierda, la tabla en el centro y el panel de detalles a la derecha (el botón <b>Inspector</b> lo muestra u oculta). La ventana y cada parte se pueden ensanchar o estrechar arrastrando sus bordes.",
+            "<b>Reglas</b>: <b>Todas las reglas</b>, <b>Activas</b>, <b>Bloqueadas</b>, <b>Cambios recientes</b> (últimos 7 días), <b>Temporales</b> y <b>Sin aprobar</b>: reglas creadas automáticamente mientras la interfaz no estaba abierta, con un número rojo al lado. El botón <b>«Aprobar todas»</b> las convierte en tus reglas.",
+            "<b>Grupos de reglas</b>: <b>Servicios de iCloud</b>, <b>Servicios de macOS</b>, <b>Apps de Apple</b>, <b>Apps de terceros</b>. El interruptor junto a cada grupo lo activa o desactiva por completo; con clic derecho en el grupo: Editar, Exportar reglas…, Activar/Desactivar grupo, Eliminar….",
+            "<b>Sugerencias</b> y <b>Mantenimiento</b>: reglas <b>Caducadas</b>, <b>Redundantes</b> (duplicadas), con <b>Identidad distinta</b> (el programa en el disco ya no es el aprobado), <b>Sin comprobación de identidad</b> (programas sin firmar) y con <b>Ejecutable ausente</b>.",
+            "La tabla muestra el icono de la app, su nombre, el estado (<b>Permitido</b>, <b>Bloqueado</b> o <b>Desactivada</b>) y el destino. Haz clic en el título de una columna para ordenar; el campo de búsqueda filtra por proceso, ruta o destino.",
+            "Clic derecho en una regla: <b>Nueva regla para «…»</b>, <b>Duplicar</b>, <b>Editar regla…</b>, <b>Convertir en regla global</b>, <b>Activar/Desactivar</b>, <b>Copiar regla / ruta / dominios</b>, <b>Mostrar en el Finder</b>, <b>Reparar ruta del proceso…</b> (si el programa se movió), <b>Mostrar solo las reglas de «…»</b>, <b>Exportar…</b>, <b>Eliminar</b>. El doble clic abre el editor.",
+            "El panel de detalles muestra la ruta, la identidad (ID de código, Team ID, quién la firmó y si la firma en el disco aún coincide), el propietario, la fecha de creación y el origen de la regla. Si el programa ya no existe, aparece un aviso con el botón <b>«Reparar ruta…»</b>.",
         ])),
-        Section(heading: "7. Filtrado y AdBlock — tres niveles", body: .bullets([
-            "<b>Mínimo (Recomendado)</b> — bloquea dominios confirmados de malware, phishing y telemetría agresiva.",
-            "<b>Medio</b> — añade los anuncios comunes y los scripts de rastreo.",
-            "<b>Máximo</b> — añade contenido para adultos y sitios de apuestas. Indicado para un Mac que usan niños.",
-            "Los niveles se suman: si marcas Máximo, también obtienes Mínimo y Medio. El botón <b>«Actualizar listas»</b> descarga la última versión.",
-            "Las listas provienen del proyecto público StevenBlack/hosts y funcionan localmente: no se envía nada fuera.",
+        Section(heading: "7. Lista de bloqueo StevenBlack", body: .bullets([
+            "Se configura desde la barra lateral de la ventana Reglas → <b>Listas de bloqueo</b> → <b>StevenBlack</b>, desde el menú <b>Lista de bloqueo</b> de la barra de menús o desde <b>Ajustes → Filtrado y AdBlock</b>.",
+            "El interruptor <b>«Lista de bloqueo StevenBlack»</b> la activa o desactiva; al lado ves cuántos dominios están bloqueados y el botón <b>«Actualizar ahora»</b>.",
+            "La base <b>Unified</b> (anuncios, malware, rastreo) siempre está incluida. Encima puedes marcar niveles: <b>+Noticias falsas</b>, <b>+Juegos de azar</b>, <b>+Pornografía</b>, <b>+Redes sociales</b>. Las listas marcadas se combinan automáticamente en una sola, sin duplicados.",
+            "<b>Añadir lista de bloqueo…</b> añade una lista pública propia (la dirección web de un archivo hosts o de una lista con un dominio por línea); también se combina en cada actualización.",
+            "<b>Comprobar un dominio</b> te dice si un sitio está en la lista; <b>«Permitir este dominio»</b> lo pasa a <b>Excepciones</b>, que siempre tienen prioridad.",
+            "El bloqueo lo hace el motor de filtrado, para cada conexión de cada app, incluidas las que ya permitiste. Las listas se descargan del proyecto público StevenBlack/hosts y se quedan en tu Mac.",
         ])),
         Section(heading: "8. Idioma y apariencia", body: .text(
             "La app habla rumano, inglés y español. Por defecto sigue el idioma del Mac; en <b>Ajustes → General → Idioma</b> puedes elegir uno. En el mismo lugar, <b>Tema</b> elige entre Sistema, Claro y Oscuro. Ambos se aplican al instante, sin reiniciar.")),

@@ -2,6 +2,50 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.3.0 (2026-09-18) — Fereastra Reguli nouă, blocklist pe niveluri, import/export din fișier
+
+### Added
+- **Fereastra Reguli**: `NavigationSplitView` cu bară laterală pliabilă —
+  Reguli (Toate, Active, Blocate, Schimbări recente, Temporare, Neaprobate
+  cu badge), Grupuri (iCloud, macOS, Aplicații Apple, Terțe — cu comutator
+  și meniu contextual: Editează, Exportă, Activează/Dezactivează, Șterge),
+  Sugestii (Expirate), Mentenanță (Redundante, Identitate schimbată, Fără
+  verificare de identitate, Executabil lipsă), Blocklist-uri.
+- **Tabel** sortabil cu pictograma nativă a aplicației (NSWorkspace), proces,
+  stare, destinație, dată; căutare după proces/cale/destinație.
+- **Meniu contextual**: Regulă nouă pentru „…”, Duplică, Editează,
+  Transformă în regulă globală, Activează/Dezactivează, Aprobă, Copiază
+  regula/calea/domeniile, Arată în Finder, Repară calea procesului, Arată
+  doar regulile pentru „…”, Exportă, Șterge.
+- **Inspector** (`.inspector` pe macOS 14+, panou echivalent pe 13): antet
+  cu pictogramă și fraza regulii, avertisment pentru executabil lipsă,
+  cale, identitate (ID cod, Team ID, semnatar, verificarea semnăturii de pe
+  disc), metadate (proprietar, creare, expirare), originea regulii, acțiuni.
+- **Editor de reguli** (nouă/editare) cu validare: cale, regex, CIDR, port.
+- **Blocklist StevenBlack pe niveluri**: Unified + Știri false, Jocuri de
+  noroc, Pornografie, Rețele sociale + liste personalizate („Adaugă
+  blocklist…”), îmbinate în flux într-un singur fișier, fără duplicate și
+  fără excepțiile utilizatorului; „Verifică un domeniu”; meniu Blocklist în
+  bara de sus.
+- **Import din fișier** (NSOpenPanel .json/.lsrules/.plist/.xbel), formatul
+  recunoscut după conținut: export Little Snitch, exportul JSON LuLu,
+  `rules.plist` LuLu. Ghid pas cu pas pentru exportul manual.
+- **Export** în format `.lsrules` (reimportabil în GDC sau Little Snitch).
+
+### Changed
+- **Blocklist-ul e aplicat acum de motor** (`useBlockList`/`blockList`),
+  pentru FIECARE conexiune. Înainte GDC îl verifica doar la conexiunile care
+  ajungeau la o alertă, deci aplicațiile deja permise îl ocoleau complet.
+- Nivelurile vechi Minim/Mediu/Maxim migrate exact („Mediu” descărca de fapt
+  lista fakenews, nu reclame, cum scria).
+- Comutarea Permis/Blocat modifică regula existentă (înainte adăuga una nouă
+  pe tot procesul, lângă cea veche).
+- Ferestrele nu mai au dimensiuni fixe (alertă, setări, Despre, configurare).
+
+### Not available (motorul LuLu nu are datele)
+- Prioritate, contor de utilizare, ultimul acces, cale „via”, checksum,
+  sugestiile Login/Full Screen, „Remove from Local Rule Group”.
+
 ## v2.2.1 (2026-09-18) — Log de diagnostic local (Regulile 25, 39)
 
 ### Added

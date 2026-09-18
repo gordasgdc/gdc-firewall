@@ -182,12 +182,29 @@ macOS/GDCFirewall/Sources/GDCFirewall/
                               față de motor: doar apelează, nu modifică)
   Engine/FirewallRule.swift — model de regulă, independent de motor
   Alerts/                   — fereastra de alertă redesenată (semafor)
-  Rules/                    — Rules Manager glassmorphic
+  Rules/                    — Rules Manager glassmorphic [ÎNVECHIT 2026-09-18:
+                              bară laterală + tabel + inspector, vezi v2.3.0]
+  Blocklist/                — surse StevenBlack pe niveluri → fișier aplicat de motor
+  Import/                   — configurare inițială, import (LuLu, Little Snitch,
+                              fișier) și export .lsrules
   Settings/                 — Auto-Pilot + preferințe
 ```
 
 ### Jurnal
 
+- **2026-09-18 — v2.3.0.** Fereastra Reguli în stil Little Snitch (bară
+  laterală, tabel, inspector, meniu contextual). Descoperire majoră: GDC
+  verifica blocklist-ul DOAR la alerte, deci nimic din ce era deja permis nu
+  trecea prin el. Motorul LuLu are propriul blocklist (`useBlockList` +
+  `blockList`, Extension/BlockOrAllowList.m) aplicat fiecărei conexiuni
+  înaintea regulilor și reîncărcat la schimbarea fișierului — GDC scrie acum
+  `~/Library/Application Support/GDCFirewall/blocklist.txt` și îl activează
+  prin `updatePreferences` la fiecare conectare. Motorul verifică blocklist-ul
+  ÎNAINTEA listei lui de excepții și face potrivire EXACTĂ pe nume, deci
+  excepțiile se scot din fișier la îmbinare. `csInfo` NU are `teamID`:
+  Team ID-ul se extrage din certificatul frunză. Câmpurile Little Snitch
+  fără echivalent în motor (prioritate, utilizare, via, checksum) nu se
+  afișează. `.inspector` cere macOS 14 — pe 13 un `HSplitView` echivalent.
 - **2026-09-18 — v2.2.1.** Log de diagnostic local (Regula 39, nouă în
   `~/Developer/CLAUDE.md`, cu GDC Firewall ca implementare de referință):
   `DiagnosticLog.swift` → unified log + `~/Library/Logs/GDCFirewall.log`;
