@@ -50,20 +50,24 @@ if [ ! -d "$VENDOR_REPO" ]; then
   exit 0
 fi
 
-mkdir -p "$SITE_DIR"
-cp "$ROOT/docs/index.html" "$SITE_DIR/index.html"
-
-# Arhiva de distributie, ca aplicatia sa fie descarcabila si direct de pe
-# gordas.dev (si vizibila prin GDC Plugin Manager), nu doar de pe release.
-# Ambele nume, mereu (Regula 17): cel versionat, ca sa se stie ce ai pe disc,
-# si cel stabil, fiindca un link fix are nevoie de un nume care nu se schimba.
-ZIP="$ROOT/dist/GDCFirewall-macOS-$APP_VERSION.zip"
-if [ -f "$ZIP" ]; then
-  cp "$ZIP" "$SITE_DIR/GDCFirewall-macOS-$APP_VERSION.zip"
-  cp "$ZIP" "$SITE_DIR/GDCFirewall-macOS.zip"
-else
-  echo "→ ⚠️  $ZIP lipseste — ruleaza intai ./scripts/build_app.sh."
+# Arhiva de distributie, direct de pe gordas.dev. Butonul paginii si
+# update.json duc la numele VERSIONAT (un client care redescarca nu mai ajunge
+# la „GDCFirewall-macOS (1).zip” si stie ce versiune are pe disc). Copia cu nume
+# stabil ramane publicata alaturi (Regula 17), pentru linkuri fixe.
+ZIP_NAME="GDCFirewall-macOS-$APP_VERSION.zip"
+ZIP="$ROOT/dist/$ZIP_NAME"
+if [ ! -f "$ZIP" ]; then
+  echo "‼️  $ZIP lipseste — ruleaza intai ./scripts/release_engine.sh."
+  echo "    Fara ea, butonul paginii ar duce la un 404."
+  exit 1
 fi
+mkdir -p "$SITE_DIR"
+sed -i '' -E "s#(id=\"download\" href=\")GDCFirewall-macOS[^\"]*\.zip\"#\1$ZIP_NAME\"#" "$ROOT/docs/index.html"
+grep -q "id=\"download\" href=\"$ZIP_NAME\"" "$ROOT/docs/index.html" \
+  || { echo "‼️  Nu am putut scrie linkul versionat in docs/index.html"; exit 1; }
+cp "$ROOT/docs/index.html" "$SITE_DIR/index.html"
+cp "$ZIP" "$SITE_DIR/$ZIP_NAME"
+cp "$ZIP" "$SITE_DIR/GDCFirewall-macOS.zip"
 
 python3 - "$ROOT/docs/update.json" "$SITE_DIR/update.json" "$APP_VERSION" "$ENGINE_VERSION" <<'PY'
 import json, pathlib, sys
@@ -75,6 +79,9 @@ data["app_version"] = app_version
 # un client publicat care-l decodeaza ca obligatoriu ar esua tacit fara el.
 data["version"] = app_version
 data["engine_version_required"] = engine_version
+# Tipul campului ramane dictionar {mac: url} (Regula 35); doar numele arhivei
+# poarta acum versiunea.
+data["download_url"] = {"mac": f"https://gordas.dev/gdc-firewall/GDCFirewall-macOS-{app_version}.zip"}
 
 for path in (src, dst):
     pathlib.Path(path).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")

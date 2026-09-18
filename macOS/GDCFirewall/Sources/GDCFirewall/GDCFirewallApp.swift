@@ -111,6 +111,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         log.info("Pornire GDC Firewall \(info?["CFBundleShortVersionString"] ?? "?") (build \(info?["CFBundleVersion"] ?? "?"))"
             + " · motor LuLu \(LuLu.engineVersion) · \(ProcessInfo.processInfo.operatingSystemVersionString)"
             + " · limbă \(Lang.current.rawValue) · \(Bundle.main.bundlePath)")
+        if UninstallMode.isRequested {
+            UninstallMode.run()
+            return
+        }
         AppMover.promptIfNeeded()
         #if !SWIFT_PACKAGE
         // Fără cererea asta extensia nu ajunge niciodată la macOS: nu apare în

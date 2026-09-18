@@ -2,6 +2,31 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.3.3 (2026-09-19) — Mutare în Aplicații fiabilă, dezinstalare completă, arhivă versionată
+
+### Fixed
+- **Mutarea în Aplicații pentru arhivele descărcate din browser.** Cauza,
+  reprodusă: browserul marchează arhiva pentru izolare (App Translocation),
+  iar marcajul se păstra pe copia din `/Applications` — aplicația pornea tot
+  izolată, cerea mutarea din nou, iar a doua mutare ducea copia instalată la
+  Coș. Acum copia din Aplicații rulează pe loc (carantina rămâne, Gatekeeper o
+  verifică în continuare), o instalare deja izolată se repară singură, iar
+  aplicația nu mai copiază niciodată peste ea însăși.
+- Promptul de mutare apare în față: aplicația de bara de meniu nu are
+  fereastră, iar alerta putea rămâne ascunsă în spatele altor ferestre.
+- Orice altă cale decât `/Applications/GDC Firewall.app` (alt nume,
+  `~/Applications`, Descărcări) e detectată; instanțele deja pornite se
+  închid înainte de relansare.
+
+### Changed
+- **Dezinstalatorul** funcționează oriunde s-ar afla aplicația (sau fără ea):
+  găsește toate copiile după identificator, oprește filtrul de rețea prin
+  aplicație (`--uninstall-extension`, promptul nativ macOS), scoate
+  configurația de filtru, regulile, preferințele, logurile, apoi verifică ce
+  a rămas. `--dry-run` arată ce ar face.
+- **Arhiva de pe site poartă versiunea în nume** (`GDCFirewall-macOS-2.3.3.zip`):
+  butonul paginii și `update.json` duc la ea; copia cu nume stabil rămâne.
+
 ## v2.3.2 (2026-09-18) — Înlocuirea extensiei fără repornirea Mac-ului
 
 ### Fixed

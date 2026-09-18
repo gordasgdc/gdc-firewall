@@ -192,6 +192,31 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-19 — v2.3.3.** App Translocation, verificat EMPIRIC pe macOS 26
+  (arhivă cu carantină `0083;…;Safari`, dezarhivată cu Archive Utility):
+  izolarea depinde DOAR de bitul 0x0080 din `com.apple.quarantine` — `0083`,
+  `00c3`, `0081` → izolată; `0003`, `0043`, `0001` → rulează pe loc. Bitul
+  supraviețuiește copierii cu FileManager ȘI mutării prin Finder/AppleScript
+  (Finder nu schimbă atributul). Bug real în 2.3.2 publicat: copia din
+  /Applications pornea izolată → AppMover cerea mutarea din nou → a doua
+  mutare copia aplicația peste ea însăși și o ducea la Coș (reprodus: aplicația
+  a dispărut din /Applications). Reparat: copia instalată primește atributul
+  FĂRĂ bitul 0x0080 — carantina rămâne (nu e „hack-ul xattr” interzis de
+  Regula 6, care scotea carantina ca să ocolească Gatekeeper; aici aplicația a
+  trecut deja de Gatekeeper, iar copia e verificată). Comparația cu
+  destinația se face pe identitatea fișierului, nu pe text. Aplicația e
+  LSUIElement: fără `setActivationPolicy(.regular)` promptul de la pornire
+  putea rămâne ascuns (cauza probabilă a „nu se declanșa”). Capcană de mediu:
+  `open -b` pornește ce găsește LaunchServices — pe Mac-ul de dezvoltare,
+  build-ul din `Build/engine/Release`, nu cel din /Applications; testele
+  pornesc după cale. Dezinstalare: fără SIP dezactivat, extensia o poate
+  dezactiva doar aplicația care o conține → `GDC Firewall --uninstall-extension`
+  (`UninstallMode.swift`), apelat de `Dezinstalare_GDCFirewall.command`, care
+  găsește copiile după bundle ID (mdfind + locuri uzuale), pune o copie
+  2.3.3+ în /Applications dacă trebuie, iar fără nicio copie folosește
+  `systemextensionsctl` (doar cu SIP dezactivat). Arhiva de pe site e
+  versionată (`sync-site.sh` rescrie butonul și `update.json`; copia stabilă
+  rămâne, Regula 17), verificat de `scripts/verify-download.sh`.
 - **2026-09-18 — v2.3.2. Cursa de înlocuire a extensiei, REZOLVATĂ** (vezi
   problema deschisă din v2.0.4). Fapte verificate: oprirea filtrului nu
   oprește procesul extensiei (același PID); `uninstall` XPC șterge folderul

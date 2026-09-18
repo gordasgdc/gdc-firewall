@@ -11,7 +11,7 @@ FAIL=0
 ok()  { echo "✓ $*"; }
 bad() { echo "✗ $*"; FAIL=1; }
 
-HREF="$(grep -oE 'class="btn" href="[^"]+"' < <(curl -fsS "$BASE/") | head -1 | sed 's/.*href="//; s/"$//')"
+HREF="$(grep -oE 'id="download" href="[^"]+"' < <(curl -fsS "$BASE/") | head -1 | sed 's/.*href="//; s/"$//')"
 case "$HREF" in
   *github.com*|"") bad "butonul de descărcare: „${HREF:-lipsă}”" ;;
   http*) URL="$HREF" ;;
@@ -23,6 +23,9 @@ JSON="$(curl -fsS -H 'Cache-Control: no-cache' "$BASE/update.json")" || { bad "u
 read -r JV JURL < <(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); u=d["download_url"]; print(d["version"], u["mac"] if isinstance(u,dict) else u)' "$JSON")
 [ "$JURL" = "$URL" ] && ok "update.json și butonul paginii indică aceeași arhivă: $URL" || bad "update.json → $JURL, butonul → $URL"
 [ -n "${1:-}" ] && { [ "$JV" = "$1" ] && ok "update.json anunță $JV" || bad "update.json anunță $JV, nu $1"; }
+case "$URL" in *"/GDCFirewall-macOS-$JV.zip") ok "numele arhivei poartă versiunea: ${URL##*/}" ;; *) bad "numele arhivei nu poartă versiunea $JV: ${URL##*/}" ;; esac
+STABLE="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE/GDCFirewall-macOS.zip")"
+[ "$STABLE" = 200 ] && ok "copia cu nume stabil rămâne publicată (Regula 17)" || bad "GDCFirewall-macOS.zip: HTTP $STABLE"
 
 read -r CODE REDIRS TYPE < <(curl -sS -o "$WORK/a.zip" -w '%{http_code} %{num_redirects} %{content_type}\n' -L "$URL")
 [ "$CODE" = 200 ] && [ "$REDIRS" = 0 ] && ok "arhiva: HTTP 200, 0 redirecționări, $TYPE, $(du -h "$WORK/a.zip" | cut -f1)" \
