@@ -399,6 +399,14 @@ T.update({
 "Un export salvat din Little Snitch sau LuLu (.json, .lsrules, .plist)": ("An export saved from Little Snitch or LuLu (.json, .lsrules, .plist)", "Una exportación guardada desde Little Snitch o LuLu (.json, .lsrules, .plist)"),
 })
 
+T.update({
+"Setări…": ("Settings…", "Ajustes…"),
+"Versiunea aplicației": ("App version", "Versión de la app"),
+"Limba interfeței": ("Interface language", "Idioma de la interfaz"),
+"„Sistem” urmează limba macOS. Schimbarea se aplică imediat.": ("“System” follows the macOS language. The change applies immediately.", "«Sistema» sigue el idioma de macOS. El cambio se aplica al instante."),
+"Limbă": ("Language", "Idioma"),
+})
+
 # Doar cheile folosite efectiv în cod: nicio traducere moartă în fișiere.
 import json as _json, subprocess as _sp, pathlib as _pl
 _root = _pl.Path(__file__).resolve().parents[2]

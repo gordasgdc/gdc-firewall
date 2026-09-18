@@ -172,6 +172,7 @@
 "Intervalul trebuie să arate ca 10.0.0.0/8." = "The range must look like 10.0.0.0/8.";
 "Leagă Mac-ul de iPhone și iPad pentru AirDrop și Handoff." = "Links your Mac with iPhone and iPad for AirDrop and Handoff.";
 "Light" = "Light";
+"Limba interfeței" = "Interface language";
 "Limbă" = "Language";
 "Lista descărcată nu a putut fi citită." = "The downloaded list could not be read.";
 "Liste personalizate" = "Custom lists";
@@ -273,6 +274,7 @@
 "Servicii macOS" = "macOS Services";
 "Serviciul Apple iCloud" = "Apple iCloud service";
 "Serviciul de rețea locală Mac" = "Mac local network service";
+"Setări…" = "Settings…";
 "Sigur" = "Safe";
 "Sincronizarea ceasului" = "Clock synchronization";
 "Sincronizează fișierele și datele tale cu iCloud." = "Syncs your files and data with iCloud.";
@@ -312,6 +314,7 @@
 "Verifică-ți conexiunea la internet și încearcă din nou, sau vizitează direct gordas.dev/gdc-firewall." = "Check your internet connection and try again, or visit gordas.dev/gdc-firewall directly.";
 "Versiune nouă disponibilă: %@" = "New version available: %@";
 "Versiunea %@" = "Version %@";
+"Versiunea aplicației" = "App version";
 "activă" = "active";
 "aplicația Little Snitch nu e instalată — folosește „Din fișier…”" = "the Little Snitch app is not installed — use “From file…”";
 "aplicații absente pe acest Mac" = "apps missing from this Mac";
@@ -368,4 +371,5 @@
 "Șterge…" = "Delete…";
 "Ștergi %d reguli?" = "Delete %d rules?";
 "Ține minte alegerea pentru această aplicație" = "Remember my choice for this app";
+"„Sistem” urmează limba macOS. Schimbarea se aplică imediat." = "“System” follows the macOS language. The change applies immediately.";
 "„întreabă”" = "“ask”";

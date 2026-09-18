@@ -2,6 +2,24 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.3.1 (2026-09-18) — Layout bară laterală, Setări la vedere, prima arhivă notarizată
+
+### Fixed
+- Butoanele de fereastră (roșu/galben/verde) acopereau începutul barei
+  laterale: fereastra Reguli folosea `.hiddenTitleBar`, deci conținutul urca
+  sub bara de titlu. Acum bară de titlu standard, unificată cu toolbar-ul.
+
+### Added
+- Subsolul barei laterale: buton „Setări…” și versiunea aplicației
+  (Regula 7). „Setări…” și în meniul din bara de sus. Pe macOS 14+ prin
+  `openSettings`, pe 13 prin `showSettingsWindow:`, cu activarea aplicației
+  (altfel fereastra se deschidea în spate).
+- Setări → General: selectorul de limbă în propria secțiune, prima.
+- `scripts/release_engine.sh`: build complet → notarizare (`gdc-notary`) →
+  staple → Gatekeeper → arhivă de client cu 3 fișiere → verificarea arhivei.
+- Prima arhivă publică a build-ului complet (aplicație + extensie de rețea),
+  notarizată. Până acum pe site era doar build-ul de interfață 2.0.1.
+
 ## v2.3.0 (2026-09-18) — Fereastra Reguli nouă, blocklist pe niveluri, import/export din fișier
 
 ### Added

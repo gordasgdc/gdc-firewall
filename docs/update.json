@@ -1,8 +1,8 @@
 {
-  "version": "2.3.0",
-  "app_version": "2.3.0",
+  "version": "2.3.1",
+  "app_version": "2.3.1",
   "engine_version_required": "4.5.1",
-  "changes": "Fereastra Reguli nouă: bară laterală cu grupuri, sugestii și mentenanță, tabel cu pictograme, meniu contextual complet și panou de detalii. Blocklist StevenBlack pe niveluri, aplicat fiecărei conexiuni. Import și export de reguli din fișier.",
+  "changes": "Fereastra Reguli nouă cu bară laterală, tabel cu pictograme, meniu contextual și panou de detalii; blocklist StevenBlack pe niveluri aplicat fiecărei conexiuni; import și export de reguli; buton Setări și alegerea limbii la vedere.",
   "download_url": {
     "mac": "https://gordas.dev/gdc-firewall/GDCFirewall-macOS.zip"
   },

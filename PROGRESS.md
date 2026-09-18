@@ -1,6 +1,6 @@
 # Stare proiect — GDC Firewall
 
-**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.3.0 · **Ramură:** `main`
+**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.3.1 · **Ramură:** `main`
 
 ---
 

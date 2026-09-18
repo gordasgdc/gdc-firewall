@@ -314,6 +314,27 @@ private struct RuleSidebar: View {
     @State private var addingBlocklist = false
 
     var body: some View {
+        // Lista și subsolul sunt FRAȚI într-un VStack, nu `.safeAreaInset` pe
+        // `List` — acela se desincronizează la redimensionare rapidă (Regula 24).
+        VStack(spacing: 0) {
+            list
+            Divider()
+            HStack {
+                SettingsButton()
+                    .buttonStyle(.borderless)
+                    .labelStyle(.titleAndIcon)
+                Spacer()
+                Text(verbatim: "v" + AppVersion.current)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .help(L("Versiunea aplicației"))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+        }
+    }
+
+    private var list: some View {
         List(selection: $selection) {
             Section(L("Reguli")) {
                 row(.all)

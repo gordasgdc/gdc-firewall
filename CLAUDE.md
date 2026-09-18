@@ -192,6 +192,12 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — v2.3.1.** Prima publicare a build-ului complet notarizat:
+  `scripts/release_engine.sh` (profil Keychain `gdc-notary`, același ca
+  DataMover). Arhiva de pe gordas.dev conține de acum aplicația CU extensia;
+  `build_app.sh` (harnașamentul SPM, fără extensie) nu mai e calea de
+  release. Suprapunerea butoanelor de fereastră peste bara laterală venea
+  din `.hiddenTitleBar` pe scena Window — reparată la cauză, nu cu padding.
 - **2026-09-18 — v2.3.0.** Fereastra Reguli în stil Little Snitch (bară
   laterală, tabel, inspector, meniu contextual). Descoperire majoră: GDC
   verifica blocklist-ul DOAR la alerte, deci nimic din ce era deja permis nu

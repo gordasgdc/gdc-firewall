@@ -21,8 +21,9 @@ struct GDCFirewallApp: App {
         Window(L("Reguli"), id: "rules") {
             RulesManagerView().id(language)
         }
-        .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 920, height: 600)
+        // Bară de titlu standard, unificată cu toolbar-ul: cu `.hiddenTitleBar`
+        // conținutul urca sub butoanele de fereastră și acoperea bara laterală.
+        .defaultSize(width: 1100, height: 680)
     }
 }
 
@@ -84,6 +85,7 @@ private struct MenuBarContent: View {
         Divider()
 
         Button(L("Verifică actualizări…")) { UpdateChecker.shared.checkManually() }
+        SettingsButton()
         Button(L("Despre GDC Firewall")) { AuxWindowPresenter.showAbout() }
 
         Divider()
