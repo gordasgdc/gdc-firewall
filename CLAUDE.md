@@ -1180,6 +1180,13 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — v2.0.2.** Primul test real al build-ului complet: aplicația
+  se închidea instant (`Unable to find class`, `NSPrincipalClass` =
+  `NSApplicationKeyEvents` din interfața LuLu scoasă din țintă), iar
+  `SystemExtensionInstaller.activate()` nu era apelat nicăieri — afirmația
+  de mai sus „starea e publicată în interfață” NU era adevărată până acum.
+  Lecție: build verde + semnătură validă ≠ aplicație care pornește; clasa
+  principală se verifică acum în `build_engine_app.sh`.
 - **2026-09-18 — build complet semnat (`scripts/build_engine_app.sh`).**
   Construiește aplicația din proiectul Xcode al motorului, cu extensia
   înăuntru, semnate de Xcode (nu de `codesign` manual: doar Xcode expandează

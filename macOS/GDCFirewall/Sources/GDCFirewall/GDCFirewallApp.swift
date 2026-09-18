@@ -27,10 +27,23 @@ struct GDCFirewallApp: App {
 private struct MenuBarContent: View {
     @ObservedObject private var bridge = DaemonBridge.shared
     @ObservedObject private var autoPilot = AutoPilot.shared
+    @ObservedObject private var sysex = SystemExtensionInstaller.shared
     @Environment(\.openWindow) private var openWindow
 
+    /// Până la aprobarea din Setări aplicația pare pornită și nu filtrează
+    /// nimic — starea extensiei se spune explicit, nu se ascunde sub „oprit”.
+    private var statusText: String {
+        if bridge.isConnected { return "Protecție activă" }
+        switch sysex.state {
+        case .requesting: return "Se activează extensia…"
+        case .needsApproval: return "Aprobă extensia în Setări de sistem"
+        case .failed(let reason): return "Extensia nu a pornit: \(reason)"
+        case .unknown, .active: return "Motor oprit"
+        }
+    }
+
     var body: some View {
-        Text(bridge.isConnected ? "Protecție activă" : "Motor oprit")
+        Text(statusText)
 
         Divider()
 
@@ -54,6 +67,11 @@ private struct MenuBarContent: View {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppMover.promptIfNeeded()
+        #if !SWIFT_PACKAGE
+        // Fără cererea asta extensia nu ajunge niciodată la macOS: nu apare în
+        // Setări de sistem și nu cere aprobare. Harnașamentul SPM n-are extensie.
+        SystemExtensionInstaller.shared.activate()
+        #endif
         _ = ThemeManager.shared
         DaemonBridge.shared.connect()
         AlertWindowController.shared.start()

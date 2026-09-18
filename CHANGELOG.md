@@ -2,6 +2,22 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.0.2 (2026-09-18) — Aplicația completă pornește și cere extensia
+
+### Fixed
+- Build-ul complet (cu motorul) se închidea instant la pornire: Info.plist-ul
+  motorului cerea clasa principală `NSApplicationKeyEvents`, scoasă din țintă
+  odată cu interfața LuLu. Acum `NSApplication`.
+- Activarea extensiei nu era apelată nicăieri: extensia nu ajungea la macOS,
+  nu apărea în Setări și nu cerea aprobare. Se cere acum la pornire.
+- `NSSupportsAutomaticTermination` oprit: aplicația din bara de meniu nu mai
+  poate fi închisă de sistem cât așteaptă alerte de la daemon.
+
+### Added
+- Starea extensiei în meniu: „Se activează…”, „Aprobă extensia în Setări de
+  sistem”, sau motivul eșecului, în loc de un „Motor oprit” generic.
+- `build_engine_app.sh` verifică existența clasei principale în binar.
+
 ## v2.0.1 (2026-09-18) — Actualizare automată din arhiva .zip, build cu Xcode 27
 
 ### Fixed

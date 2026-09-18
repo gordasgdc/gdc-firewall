@@ -100,6 +100,12 @@ pb() { /usr/libexec/PlistBuddy -c "$1" "$APP_PLIST" >/dev/null 2>&1 || true; }
 pb "Set :CFBundleName GDC Firewall"
 pb "Set :CFBundleDisplayName GDC Firewall"
 pb "Delete :NSMainNibFile"          # punctul de intrare e @main-ul SwiftUI, nu un xib
+# Motorul cere `NSApplicationKeyEvents`, o subclasă din interfața LuLu scoasă
+# din țintă. AppKit n-o găsește și închide aplicația înainte de primul rând GDC.
+pb "Set :NSPrincipalClass NSApplication"
+# Aplicația din bara de meniu n-are ferestre vizibile, deci macOS ar putea s-o
+# închidă singur — iar fără ea, alertele daemon-ului n-au cui să ajungă.
+pb "Set :NSSupportsAutomaticTermination false"
 pb "Add :LSUIElement bool true"     # aplicația trăiește în bara de meniu
 pb "Set :LSUIElement true"
 pb "Set :NSHumanReadableCopyright © 2026 Cristi Gordaș / GDC. GPL-3.0. Motor: LuLu © Objective-See."

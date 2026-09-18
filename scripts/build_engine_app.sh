@@ -176,6 +176,14 @@ for b in "$APP" "$SYSEX"; do
   if echo "$ents" | grep -q "get-task-allow"; then fail "${label}: contine get-task-allow (depanabil, notarizarea l-ar respinge)."; fi
 done
 
+# O clasă principală care nu există în binar = aplicația se închide instant
+# la pornire („Unable to find class”), deși build-ul și semnătura sunt curate.
+PRINCIPAL="$(plutil -extract NSPrincipalClass raw -o - "$APP/Contents/Info.plist" 2>/dev/null || true)"
+if [ -n "$PRINCIPAL" ] && [ "$PRINCIPAL" != "NSApplication" ]; then
+  nm "$APP/Contents/MacOS/GDC Firewall" 2>/dev/null | grep -q "_OBJC_CLASS_\$_${PRINCIPAL}\$" \
+    || fail "NSPrincipalClass=${PRINCIPAL} nu exista in binar — aplicatia s-ar inchide la pornire."
+fi
+
 MACH="$(plutil -extract NetworkExtension.NEMachServiceName raw -o - "$SYSEX/Contents/Info.plist")"
 [ "${MACH#${TEAM_ID}.}" != "$MACH" ] || fail "NEMachServiceName neexpandat: ${MACH}"
 

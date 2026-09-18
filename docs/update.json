@@ -1,8 +1,8 @@
 {
-  "version": "2.0.1",
-  "app_version": "2.0.1",
+  "version": "2.0.2",
+  "app_version": "2.0.2",
   "engine_version_required": "4.5.1",
-  "changes": "Actualizarea automată descarcă acum aplicația direct de pe gordas.dev și o repornește corect după instalare.",
+  "changes": "Aplicația cere acum activarea extensiei de rețea la pornire și arată în meniu dacă extensia trebuie aprobată în Setări de sistem.",
   "download_url": {
     "mac": "https://gordas.dev/gdc-firewall/GDCFirewall-macOS.zip"
   },
