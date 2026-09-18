@@ -1,8 +1,8 @@
 {
-  "version": "2.1.0",
-  "app_version": "2.1.0",
+  "version": "2.2.0",
+  "app_version": "2.2.0",
   "engine_version_required": "4.5.1",
-  "changes": "Import de reguli din LuLu și Little Snitch la prima configurare, filtrarea se pornește și se oprește din meniu, iar regulile firewall-ului nu mai sunt amestecate cu ale unui LuLu instalat.",
+  "changes": "Interfața în română, engleză și spaniolă, cu alegerea limbii din Setări. Ghid actualizat, cu configurarea inițială și importul regulilor.",
   "download_url": {
     "mac": "https://gordas.dev/gdc-firewall/GDCFirewall-macOS.zip"
   },

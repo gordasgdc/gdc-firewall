@@ -12,10 +12,10 @@ enum AppMover {
         guard !isRunningFromXcodeOrTests() else { return }
 
         let alert = NSAlert()
-        alert.messageText = "Mutare în Aplicații?"
-        alert.informativeText = "GDC Firewall rulează în afara folderului Aplicații. Pentru stabilitate (actualizări automate, permisiuni corecte), se recomandă mutarea în /Applications."
-        alert.addButton(withTitle: "Mută în Aplicații")
-        alert.addButton(withTitle: "Nu acum")
+        alert.messageText = L("Mutare în Aplicații?")
+        alert.informativeText = L("GDC Firewall rulează în afara folderului Aplicații. Pentru stabilitate (actualizări automate, permisiuni corecte), se recomandă mutarea în /Applications.")
+        alert.addButton(withTitle: L("Mută în Aplicații"))
+        alert.addButton(withTitle: L("Nu acum"))
         alert.alertStyle = .informational
 
         guard alert.runModal() == .alertFirstButtonReturn else { return }
@@ -55,8 +55,8 @@ enum AppMover {
             NSApp.terminate(nil)
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Mutare eșuată"
-            alert.informativeText = "Nu am putut muta aplicația automat (\(error.localizedDescription)). Mut-o manual în /Applications din Finder."
+            alert.messageText = L("Mutare eșuată")
+            alert.informativeText = L("Nu am putut muta aplicația automat (%@). Mut-o manual în /Applications din Finder.", error.localizedDescription)
             alert.alertStyle = .warning
             alert.runModal()
         }

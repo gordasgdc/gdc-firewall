@@ -33,7 +33,7 @@ struct ConnectionRequest: Identifiable, Hashable {
         self.path = path
         self.processID = pid_t((alert[LuLu.Key.pid] as? Int) ?? -1)
         self.displayName = alert[LuLu.Key.name] as? String
-        self.remoteAddress = (alert[LuLu.Key.endpointAddr] as? String) ?? "necunoscut"
+        self.remoteAddress = (alert[LuLu.Key.endpointAddr] as? String) ?? L("necunoscut")
         self.remotePort = Int((alert[LuLu.Key.endpointPort] as? String) ?? "") ?? (alert[LuLu.Key.endpointPort] as? Int ?? 0)
 
         // Numele de gazdă e opțional: motorul îl pune doar când l-a putut
@@ -66,20 +66,20 @@ struct ConnectionRequest: Identifiable, Hashable {
 
     var friendlyDetail: String {
         ProcessCatalog.shared.detail(processName: processName, bundleID: bundleID)
-            ?? "Acest program vrea să trimită sau să primească date pe internet."
+            ?? L("Acest program vrea să trimită sau să primească date pe internet.")
     }
 
     /// Portul, tradus acolo unde traducerea chiar ajută. Restul rămân
     /// numere — mai bine un număr onest decât o etichetă inventată.
     var portDescription: String {
         switch remotePort {
-        case 80: return "web (HTTP, nesecurizat)"
-        case 443: return "web securizat (HTTPS)"
-        case 53: return "căutare adrese (DNS)"
-        case 22: return "terminal la distanță (SSH)"
-        case 25, 465, 587: return "trimitere e-mail"
-        case 993, 995: return "citire e-mail"
-        default: return "port \(remotePort)"
+        case 80: return L("web (HTTP, nesecurizat)")
+        case 443: return L("web securizat (HTTPS)")
+        case 53: return L("căutare adrese (DNS)")
+        case 22: return L("terminal la distanță (SSH)")
+        case 25, 465, 587: return L("trimitere e-mail")
+        case 993, 995: return L("citire e-mail")
+        default: return L("port %d", remotePort)
         }
     }
 }

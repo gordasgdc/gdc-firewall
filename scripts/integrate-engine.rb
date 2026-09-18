@@ -76,6 +76,17 @@ unless app.resources_build_phase.files.map { |f| f.file_ref&.path }.include?(res
   app.add_resources([group.new_file(res)])
 end
 
+# Traducerile interfeței (GDC.strings, EN/ES), ca referințe de folder: Xcode
+# copiază `xx.lproj/` întreg în Resources, exact unde îl caută L10n. Tabelul
+# „GDC” nu se ciocnește cu `Localizable` al motorului.
+%w[en es].each do |lang|
+  path = File.join(GDC_ROOT, "Resources/#{lang}.lproj")
+  next if app.resources_build_phase.files.map { |f| f.file_ref&.path }.include?(path)
+  ref = group.new_reference(path)
+  ref.last_known_file_type = "folder"
+  app.add_resources([ref])
+end
+
 # --- Setări de build ----------------------------------------------------
 
 app.build_configurations.each do |config|

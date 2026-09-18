@@ -51,12 +51,14 @@ final class ProcessCatalog {
     /// Numele afișat oriunde în interfață: traducerea dacă există, altfel
     /// numele aplicației din Finder, altfel numele brut al procesului.
     func friendlyName(processName: String, bundleID: String?, displayName: String?) -> String {
-        lookup(processName: processName, bundleID: bundleID)?.name
+        // Dicționarul e în română; traducerile numelor și explicațiilor stau
+        // în GDC.strings, cu textul românesc drept cheie (check-l10n.sh le verifică).
+        lookup(processName: processName, bundleID: bundleID).map { L($0.name) }
             ?? displayName
             ?? processName
     }
 
     func detail(processName: String, bundleID: String?) -> String? {
-        lookup(processName: processName, bundleID: bundleID)?.detail
+        lookup(processName: processName, bundleID: bundleID).map { L($0.detail) }
     }
 }

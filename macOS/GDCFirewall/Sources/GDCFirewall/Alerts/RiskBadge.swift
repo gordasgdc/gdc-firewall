@@ -33,7 +33,7 @@ struct RiskBadge: View {
             }
         }
         .accessibilityElement()
-        .accessibilityLabel("Nivel de risc: \(risk.title)")
+        .accessibilityLabel(L("Nivel de risc: %@", risk.title))
     }
 }
 

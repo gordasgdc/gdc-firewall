@@ -27,10 +27,10 @@ struct ForeignFirewall: Identifiable, Equatable {
 
     var statusText: String {
         switch extensionState {
-        case "activated enabled": return "Activ — filtrează conexiunile acum"
-        case .some(let state) where state.contains("waiting for user"): return "Instalat, dar neaprobat în Setări"
-        case .some: return "Extensie instalată, inactivă"
-        case .none: return appURL != nil ? "Aplicație instalată, fără extensie activă" : "Doar reguli rămase pe disc"
+        case "activated enabled": return L("Activ — filtrează conexiunile acum")
+        case .some(let state) where state.contains("waiting for user"): return L("Instalat, dar neaprobat în Setări")
+        case .some: return L("Extensie instalată, inactivă")
+        case .none: return appURL != nil ? L("Aplicație instalată, fără extensie activă") : L("Doar reguli rămase pe disc")
         }
     }
 
@@ -38,11 +38,9 @@ struct ForeignFirewall: Identifiable, Equatable {
     var disableInstructions: String {
         switch kind {
         case .littleSnitch:
-            return "În Little Snitch: iconița din bara de meniu → comutatorul „Network Filter” pe Off. "
-                + "Pentru a-l scoate de tot: Little Snitch → meniul aplicației → Uninstall."
+            return L("În Little Snitch: iconița din bara de meniu → comutatorul „Network Filter” pe Off. Pentru a-l scoate de tot: Little Snitch → meniul aplicației → Uninstall.")
         case .lulu:
-            return "În LuLu: iconița din bara de meniu → Preferences → „Disable” (sau „Uninstall” pentru eliminare). "
-                + "Alternativ: Setări de sistem → Rețea → Filtre, unde poți opri filtrul LuLu."
+            return L("În LuLu: iconița din bara de meniu → Preferences → „Disable” (sau „Uninstall” pentru eliminare). Alternativ: Setări de sistem → Rețea → Filtre, unde poți opri filtrul LuLu.")
         }
     }
 }
@@ -119,11 +117,14 @@ struct ImportReport {
 
     mutating func skip(_ reason: String) { skipped[reason, default: 0] += 1 }
 
+    /// „Importate: 100 · Existau deja: 13 · Sărite: aplicații absente pe
+    /// acest Mac (107)” — forma „etichetă: număr” ocolește acordul la plural,
+    /// diferit în fiecare limbă. Motivele sunt deja traduse la `skip`.
     var summary: String {
-        var parts = ["\(rules.count) reguli importate"]
-        if duplicates > 0 { parts.append("\(duplicates) existau deja") }
-        let reasons = skipped.sorted { $0.value > $1.value }.map { "\($0.value) \($0.key)" }
-        if !reasons.isEmpty { parts.append("sărite: " + reasons.joined(separator: ", ")) }
+        var parts = [L("Importate: %d", rules.count)]
+        if duplicates > 0 { parts.append(L("Existau deja: %d", duplicates)) }
+        let reasons = skipped.sorted { $0.value > $1.value }.map { "\($0.key) (\($0.value))" }
+        if !reasons.isEmpty { parts.append(L("Sărite: %@", reasons.joined(separator: ", "))) }
         return parts.joined(separator: " · ")
     }
 }
@@ -138,9 +139,9 @@ enum RuleImporter {
 
         var errorDescription: String? {
             switch self {
-            case .unreadable(let detail): return "Nu pot citi regulile: \(detail)"
-            case .cancelled: return "Import anulat."
-            case .exportFailed(let detail): return "Exportul din Little Snitch a eșuat: \(detail)"
+            case .unreadable(let detail): return L("Nu pot citi regulile: %@", detail)
+            case .cancelled: return L("Import anulat.")
+            case .exportFailed(let detail): return L("Exportul din Little Snitch a eșuat: %@", detail)
             }
         }
     }
@@ -163,7 +164,7 @@ enum RuleImporter {
                                    NSSet.self, NSMutableSet.self, NSDate.self]
             + (NSClassFromString("Rule").map { [$0] } ?? [])
         guard let root = try? NSKeyedUnarchiver.unarchivedObject(ofClasses: allowed, from: data) as? [String: Any] else {
-            throw ImportError.unreadable("format necunoscut")
+            throw ImportError.unreadable(L("format necunoscut"))
         }
 
         var report = ImportReport()
@@ -173,13 +174,13 @@ enum RuleImporter {
             for rule in objects {
                 let type = (rule.value(forKey: "type") as? NSNumber)?.intValue
                 guard type == LuLu.RuleType.user else { continue }
-                if (rule.value(forKey: "isDisabled") as? NSNumber)?.boolValue == true { report.skip("dezactivate"); continue }
-                if rule.value(forKey: "pid") != nil { report.skip("valabile doar cât rula procesul"); continue }
-                if let expiration = rule.value(forKey: "expiration") as? Date, expiration < Date() { report.skip("expirate"); continue }
+                if (rule.value(forKey: "isDisabled") as? NSNumber)?.boolValue == true { report.skip(L("dezactivate")); continue }
+                if rule.value(forKey: "pid") != nil { report.skip(L("valabile doar cât rula procesul")); continue }
+                if let expiration = rule.value(forKey: "expiration") as? Date, expiration < Date() { report.skip(L("expirate")); continue }
 
-                guard let path = rule.value(forKey: "path") as? String else { report.skip("fără cale"); continue }
+                guard let path = rule.value(forKey: "path") as? String else { report.skip(L("fără cale")); continue }
                 guard path.hasSuffix("*") || FileManager.default.fileExists(atPath: path) else {
-                    report.skip("aplicații absente pe acest Mac"); continue
+                    report.skip(L("aplicații absente pe acest Mac")); continue
                 }
                 let addr = rule.value(forKey: "endpointAddr") as? String ?? "*"
                 let port = rule.value(forKey: "endpointPort") as? String ?? "*"
@@ -214,7 +215,7 @@ enum RuleImporter {
     static func exportLittleSnitchModel(appURL: URL) throws -> Data {
         let cli = appURL.appendingPathComponent(ForeignFirewalls.littleSnitchCLI).path
         guard FileManager.default.isExecutableFile(atPath: cli) else {
-            throw ImportError.exportFailed("nu găsesc utilitarul littlesnitch în aplicație")
+            throw ImportError.exportFailed(L("nu găsesc utilitarul littlesnitch în aplicație"))
         }
         let dir = FileManager.default.temporaryDirectory
             .appendingPathComponent("gdcfirewall-import-\(UUID().uuidString)", isDirectory: true)
@@ -238,7 +239,7 @@ enum RuleImporter {
         guard process.terminationStatus == 0 else {
             let message = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             if message.contains("-128") { throw ImportError.cancelled }
-            throw ImportError.exportFailed(message.isEmpty ? "cod \(process.terminationStatus)" : message)
+            throw ImportError.exportFailed(message.isEmpty ? L("cod %d", Int(process.terminationStatus)) : message)
         }
         do {
             return try Data(contentsOf: out)
@@ -256,34 +257,34 @@ enum RuleImporter {
     /// ale furnizorilor lor, nu ale utilizatorului.
     static func importLittleSnitch(data: Data, existing: Set<String>) throws -> ImportReport {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw ImportError.unreadable("fișierul nu e JSON")
+            throw ImportError.unreadable(L("fișierul nu e JSON"))
         }
         guard let rules = json["rules"] as? [[String: Any]] else {
-            throw ImportError.unreadable("fișierul nu conține o listă „rules” la rădăcină")
+            throw ImportError.unreadable(L("fișierul nu conține o listă „rules” la rădăcină"))
         }
 
         var report = ImportReport()
         var seen = existing
         for rule in rules {
-            if rule["disabled"] as? Bool == true { report.skip("dezactivate"); continue }
-            if (rule["direction"] as? String ?? "outgoing") != "outgoing" { report.skip("pentru conexiuni de intrare"); continue }
-            if rule["via"] != nil { report.skip("de tip „via”"); continue }
+            if rule["disabled"] as? Bool == true { report.skip(L("dezactivate")); continue }
+            if (rule["direction"] as? String ?? "outgoing") != "outgoing" { report.skip(L("pentru conexiuni de intrare")); continue }
+            if rule["via"] != nil { report.skip(L("de tip „via”")); continue }
 
             let action: Int
             switch rule["action"] as? String {
             case "allow": action = LuLu.RuleState.allow
             case "deny": action = LuLu.RuleState.block
-            default: report.skip("„întreabă”"); continue
+            default: report.skip(L("„întreabă”")); continue
             }
 
             let process = rule["process"] as? String ?? "any"
             let path = process == "any" ? "*" : process
             guard path == "*" || FileManager.default.fileExists(atPath: path) else {
-                report.skip("aplicații absente pe acest Mac"); continue
+                report.skip(L("aplicații absente pe acest Mac")); continue
             }
 
             let portValue = rule["ports"].map { "\($0)" } ?? "any"
-            guard !portValue.contains("-"), !portValue.contains(",") else { report.skip("cu interval de porturi"); continue }
+            guard !portValue.contains("-"), !portValue.contains(",") else { report.skip(L("cu interval de porturi")); continue }
             let port = portValue == "any" ? "*" : portValue
 
             var proto: Int?
@@ -291,7 +292,7 @@ enum RuleImporter {
             case nil, "any": proto = nil
             case "tcp": proto = Int(IPPROTO_TCP)
             case "udp": proto = Int(IPPROTO_UDP)
-            default: report.skip("cu alt protocol decât TCP/UDP"); continue
+            default: report.skip(L("cu alt protocol decât TCP/UDP")); continue
             }
 
             guard let endpoints = endpoints(of: rule, report: &report) else { continue }
@@ -330,11 +331,11 @@ enum RuleImporter {
             result.append(("^(.+\\.)?\(escaped)$", LuLu.EndpointType.regex))
         }
         for address in list("remote-addresses") {
-            if address.contains("-") { report.skip("cu interval de adrese"); continue }
+            if address.contains("-") { report.skip(L("cu interval de adrese")); continue }
             result.append((address, address.contains("/") ? LuLu.EndpointType.cidr : LuLu.EndpointType.exact))
         }
         if let remote = rule["remote"] as? String {
-            guard remote == "any" else { report.skip("cu destinație specială (rețea locală, Bonjour…)"); return nil }
+            guard remote == "any" else { report.skip(L("cu destinație specială (rețea locală, Bonjour…)")); return nil }
             result.append(("*", LuLu.EndpointType.exact))
         }
         if result.isEmpty {

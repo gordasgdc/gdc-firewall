@@ -82,9 +82,9 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
             // NEFilterManager activă, macOS nici nu lansează procesul extensiei.
             enableFilter()
         case .willCompleteAfterReboot:
-            state = .failed("Extensia se va activa după repornirea Mac-ului.")
+            state = .failed(L("Extensia se va activa după repornirea Mac-ului."))
         @unknown default:
-            state = .failed("Rezultat necunoscut la activarea extensiei.")
+            state = .failed(L("Rezultat necunoscut la activarea extensiei."))
         }
     }
 

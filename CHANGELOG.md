@@ -2,6 +2,31 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.2.0 (2026-09-18) — Interfață RO/EN/ES, ghid PDF generat din Swift
+
+### Added
+- **Interfața în română, engleză și spaniolă** (214 texte): `Resources/en.lproj`
+  și `es.lproj/GDC.strings`, cheia fiind textul românesc din cod (`L("…")`).
+  Limba urmează macOS sau se alege din Setări → General → Limbă; se aplică
+  imediat. Tabelul `GDC`, nu `Localizable`, ca să nu se ciocnească cu
+  catalogul motorului. Explicațiile proceselor din alerte sunt și ele traduse.
+- `scripts/check-l10n.sh`, rulat de ambele scripturi de build: pică la o
+  traducere lipsă, la specificatori `%@`/`%d` diferiți (crash la formatare),
+  la text de interfață neîmpachetat în `L()` și la chei dinamice nevăzute.
+- **Ghidul PDF generat din Swift** (`installer/generate-guide.swift`),
+  regenerat la fiecare `build_app.sh`: secțiuni noi pentru configurarea
+  inițială, importul din LuLu și Little Snitch, mesajele din meniu, limbă.
+  Se auto-verifică: secțiuni prezente, orientare, margini, cuvinte interzise.
+
+### Changed
+- Ghidul EN/ES folosește etichetele interfeței în limba lui (nu mai citează
+  butoanele în română). Instalarea descrie arhiva `.zip` reală, nu un `.pkg`.
+- `installer/generate_pdf.py` (reportlab) eliminat, înlocuit de generatorul Swift.
+
+### Fixed
+- Ghidul vechi scria „nu este un preț” / „not a price” / „no es un precio” —
+  interzis de Regula 3. Reformulat; generatorul pică dacă reapare.
+
 ## v2.1.0 (2026-09-18) — Import din LuLu și Little Snitch, filtru finalizat
 
 ### Added

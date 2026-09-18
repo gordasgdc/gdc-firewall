@@ -1,6 +1,6 @@
 # Stare proiect — GDC Firewall
 
-**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.1.0 · **Ramură:** `main`
+**Ultima actualizare:** 2026-09-18 · **Versiune:** 2.2.0 · **Ramură:** `main`
 
 ---
 
@@ -27,7 +27,8 @@ poate fi trimis de altcineva, iar răspunsul vine pe e-mailul contului.
 | Integrare în workspace-ul motorului LuLu v4.5.1 | gata, ambele ținte compilează |
 | Actualizare hibridă (interfață + motor) | gata |
 | Pictogramă, din sursă vectorială | gata |
-| Ghid `Instructiuni_Utilizare.pdf`, RO/EN/ES, 9 pagini | gata |
+| Ghid `Instructiuni_Utilizare.pdf`, RO/EN/ES, 12 pagini, generat din `installer/generate-guide.swift` | gata |
+| Interfață RO/EN/ES, verificată de `scripts/check-l10n.sh` | gata |
 | Scripturi: build, integrare, verificare, sincronizare site | gata |
 | Documentație de semnare + checklist de notarizare | gata |
 | Distribuție sincronizată în `gdc-plugin-manager-catalog-vendor/docs/gdc-firewall/` | gata (v2.0.0 comisă) |

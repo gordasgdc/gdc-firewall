@@ -49,7 +49,7 @@ export APPLE_NOTARY_KEY_P8="$(cat ~/Developer/Certificates/AuthKey_XXXX.p8)"
 - [ ] Versiunea e ≥ 2.0.0 (cerință a extensiei, vezi `XPCListener.m`) și e
       sincronă în `Info.plist`, `gdc-manifest.json`, `docs/update.json`.
 - [ ] `CHANGELOG.md` are intrarea versiunii (Regula 25).
-- [ ] Ghidul e regenerat: `python3 installer/generate_pdf.py`
+- [ ] Ghidul e regenerat: `swift installer/generate-guide.swift` (îl rulează și `build_app.sh`)
 - [ ] Preflight-ul ecosistemului:
       `~/Developer/_gdc-tools/preflight-release.sh <versiune>`
 

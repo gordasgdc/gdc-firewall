@@ -84,7 +84,7 @@ final class UpdateChecker {
         var errorDescription: String? {
             switch self {
             case .network(let e): return e.localizedDescription
-            case .badStatus(let code): return "Server a răspuns cu status \(code)."
+            case .badStatus(let code): return L("Serverul a răspuns cu status %d.", code)
             case .decode: return "Răspunsul primit nu e un update.json valid."
             }
         }
@@ -219,25 +219,24 @@ final class UpdateChecker {
 
         switch reason {
         case .newInterface:
-            alert.messageText = "Versiune nouă disponibilă: \(info.effectiveAppVersion)"
+            alert.messageText = L("Versiune nouă disponibilă: %@", info.effectiveAppVersion)
             alert.informativeText = (info.changes ?? "")
-                + "\n\nApasă „Actualizează acum” pentru a descărca și instala automat."
+                + "\n\n" + L("Apasă „Actualizează acum” pentru a descărca și instala automat.")
         case .engineUnsupported:
             alert.alertStyle = .critical
-            alert.messageText = "Actualizare critică de securitate"
+            alert.messageText = L("Actualizare critică de securitate")
             // Mesajul apare în limba sistemului, nu în română forțat: cine
             // rulează un motor de filtrare nesusținut trebuie să înțeleagă
             // avertismentul, chiar dacă nu citește română.
             alert.informativeText = L10n.engineUpdateRequired()
-                + "\n\nMotor instalat: \(LuLu.engineVersion)"
-                + " · minim susținut: \(info.engineVersionRequired ?? "—")"
+                + "\n\n" + L("Motor instalat: %@ · minim susținut: %@", LuLu.engineVersion, info.engineVersionRequired ?? "—")
         }
 
-        alert.addButton(withTitle: "Actualizează acum")
+        alert.addButton(withTitle: L("Actualizează acum"))
         // „Mai târziu” dispare la un motor nesusținut și la update obligatoriu:
         // butonul ar sugera că amânarea e o opțiune fără consecințe.
         if !info.mandatory && reason != .engineUnsupported {
-            alert.addButton(withTitle: "Mai târziu")
+            alert.addButton(withTitle: L("Mai târziu"))
         }
 
         let response = alert.runModal()
@@ -251,8 +250,8 @@ final class UpdateChecker {
 
     private func presentUpToDateAlert() {
         let alert = NSAlert()
-        alert.messageText = "Ești la zi"
-        alert.informativeText = "Rulezi cea mai recentă versiune."
+        alert.messageText = L("Ești la zi")
+        alert.informativeText = L("Rulezi cea mai recentă versiune.")
         alert.addButton(withTitle: "OK")
         alert.runModal()
     }
@@ -261,8 +260,8 @@ final class UpdateChecker {
     /// înseamnă că nu există versiune nouă, doar că n-am putut verifica.
     private func presentCheckFailedAlert(_ error: Error) {
         let alert = NSAlert()
-        alert.messageText = "Nu am putut verifica actualizări"
-        alert.informativeText = "\(error.localizedDescription)\n\nVerifică-ți conexiunea la internet și încearcă din nou, sau vizitează direct gordas.dev/gdc-firewall."
+        alert.messageText = L("Nu am putut verifica actualizări")
+        alert.informativeText = error.localizedDescription + "\n\n" + L("Verifică-ți conexiunea la internet și încearcă din nou, sau vizitează direct gordas.dev/gdc-firewall.")
         alert.alertStyle = .warning
         alert.addButton(withTitle: "OK")
         alert.runModal()

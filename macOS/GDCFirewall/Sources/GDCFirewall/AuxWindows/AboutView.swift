@@ -14,7 +14,7 @@ struct AboutView: View {
             Text("GDC Firewall")
                 .font(.title2.weight(.semibold))
 
-            Text("Versiunea \(version)")
+            Text(L("Versiunea %@", version))
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
@@ -26,7 +26,7 @@ struct AboutView: View {
                 // Atribuirea Objective-See e o obligație a licenței GPL-3.0
                 // sub care e publicat motorul — nu se scoate niciodată din
                 // acest ecran, indiferent de redesign.
-                Text("Motor de filtrare: LuLu © Objective-See\nDistribuit sub licența GPL-3.0")
+                Text(L("Motor de filtrare: LuLu © Objective-See\nDistribuit sub licența GPL-3.0"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

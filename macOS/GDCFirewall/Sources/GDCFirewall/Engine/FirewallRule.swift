@@ -7,7 +7,7 @@ enum RuleAction: Int, Codable {
     case block = 0
     case allow = 1
 
-    var label: String { self == .allow ? "Permis" : "Blocat" }
+    var label: String { self == .allow ? L("Permis") : L("Blocat") }
 }
 
 /// Cine a creat regula. Distincția contează în UI: regulile scrise de
@@ -19,9 +19,9 @@ enum RuleOrigin: Int, Codable {
 
     var label: String {
         switch self {
-        case .user: return "Decizia ta"
-        case .autoPilot: return "Aprobare inteligentă"
-        case .baseline: return "Regulă de bază"
+        case .user: return L("Decizia ta")
+        case .autoPilot: return L("Aprobare inteligentă")
+        case .baseline: return L("Regulă de bază")
         }
     }
 }
@@ -31,6 +31,16 @@ enum RuleCategory: String, Codable, CaseIterable, Identifiable {
     case verifiedApps = "Aplicații Verificate"
     case systemServices = "Servicii Sistem"
     case blocked = "Reguli Blocate"
+
+    /// `rawValue` e identitatea categoriei; pe ecran apare traducerea.
+    /// Literale, nu `L(rawValue)`: check-l10n.sh vede doar cheile scrise în cod.
+    var title: String {
+        switch self {
+        case .verifiedApps: return L("Aplicații Verificate")
+        case .systemServices: return L("Servicii Sistem")
+        case .blocked: return L("Reguli Blocate")
+        }
+    }
 
     var id: String { rawValue }
 

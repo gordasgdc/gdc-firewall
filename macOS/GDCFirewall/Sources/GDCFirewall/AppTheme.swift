@@ -6,9 +6,9 @@ enum AppTheme: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .system: return "Sistem"
-        case .light: return "Light"
-        case .dark: return "Dark"
+        case .system: return L("Sistem")
+        case .light: return L("Light")
+        case .dark: return L("Dark")
         }
     }
 

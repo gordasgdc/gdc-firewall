@@ -125,11 +125,11 @@ final class BlocklistStore: ObservableObject {
                 return
             }
             if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-                self.finish(error: "Serverul a răspuns cu status \(http.statusCode).")
+                self.finish(error: L("Serverul a răspuns cu status %d.", http.statusCode))
                 return
             }
             guard let data, let text = String(data: data, encoding: .utf8) else {
-                self.finish(error: "Lista descărcată nu a putut fi citită.")
+                self.finish(error: L("Lista descărcată nu a putut fi citită."))
                 return
             }
             self.queue.async {

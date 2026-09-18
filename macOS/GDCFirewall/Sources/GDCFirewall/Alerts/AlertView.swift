@@ -35,7 +35,7 @@ struct AlertView: View {
                 .font(.title3.weight(.semibold))
                 .multilineTextAlignment(.center)
 
-            Text("vrea să se conecteze la internet")
+            Text(L("vrea să se conecteze la internet"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -57,21 +57,21 @@ struct AlertView: View {
 
     private var details: some View {
         VStack(alignment: .leading, spacing: 14) {
-            row(icon: "info.circle", title: "Ce face", text: request.friendlyDetail)
-            row(icon: "globe", title: "Unde se conectează", text: "\(request.remoteHost) · \(request.portDescription)")
-            row(icon: risk.systemImage, title: "De ce te întreb", text: risk.explanation)
+            row(icon: "info.circle", title: L("Ce face"), text: request.friendlyDetail)
+            row(icon: "globe", title: L("Unde se conectează"), text: "\(request.remoteHost) · \(request.portDescription)")
+            row(icon: risk.systemImage, title: L("De ce te întreb"), text: risk.explanation)
 
             DisclosureGroup(isExpanded: $showTechnical) {
                 VStack(alignment: .leading, spacing: 4) {
-                    technical("Proces", request.processName)
-                    technical("Cale", request.path)
-                    if let bundleID = request.bundleID { technical("Identificator", bundleID) }
-                    technical("Adresă", "\(request.remoteAddress):\(request.remotePort)")
+                    technical(L("Proces"), request.processName)
+                    technical(L("Cale"), request.path)
+                    if let bundleID = request.bundleID { technical(L("Identificator"), bundleID) }
+                    technical(L("Adresă"), "\(request.remoteAddress):\(request.remotePort)")
                     technical("PID", "\(request.processID)")
                 }
                 .padding(.top, 8)
             } label: {
-                Text("Detalii tehnice")
+                Text(L("Detalii tehnice"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -104,7 +104,7 @@ struct AlertView: View {
 
     private var actions: some View {
         VStack(spacing: 12) {
-            Toggle("Ține minte alegerea pentru această aplicație", isOn: $remember)
+            Toggle(L("Ține minte alegerea pentru această aplicație"), isOn: $remember)
                 .font(.caption)
                 .toggleStyle(.checkbox)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -113,14 +113,14 @@ struct AlertView: View {
                 Button(role: .destructive) {
                     send(.block)
                 } label: {
-                    Text("Blochează").frame(maxWidth: .infinity)
+                    Text(L("Blochează")).frame(maxWidth: .infinity)
                 }
                 .keyboardShortcut(risk.defaultsToAllow ? .cancelAction : .defaultAction)
 
                 Button {
                     send(.allow)
                 } label: {
-                    Text("Permite").frame(maxWidth: .infinity)
+                    Text(L("Permite")).frame(maxWidth: .infinity)
                 }
                 .keyboardShortcut(risk.defaultsToAllow ? .defaultAction : .cancelAction)
             }

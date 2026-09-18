@@ -48,7 +48,7 @@ struct RulesManagerView: View {
             HStack(spacing: 10) {
                 Image(systemName: category.systemImage)
                     .frame(width: 18)
-                Text(category.rawValue)
+                Text(category.title)
                 Spacer()
                 Text("\(rules(in: category).count)")
                     .font(.caption.monospacedDigit())
@@ -71,7 +71,7 @@ struct RulesManagerView: View {
             Circle()
                 .fill(bridge.isConnected ? Color.green : Color.orange)
                 .frame(width: 8, height: 8)
-            Text(bridge.isConnected ? "Protecție activă" : "Motor oprit")
+            Text(bridge.isConnected ? L("Protecție activă") : L("Motor oprit"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -106,12 +106,12 @@ struct RulesManagerView: View {
 
     private var toolbar: some View {
         HStack(spacing: 12) {
-            Text(selection.rawValue)
+            Text(selection.title)
                 .font(.title3.weight(.semibold))
 
             Spacer()
 
-            TextField("Caută", text: $search)
+            TextField(L("Caută"), text: $search)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 200)
 
@@ -120,7 +120,7 @@ struct RulesManagerView: View {
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
-            .help("Reîncarcă regulile din motor")
+            .help(L("Reîncarcă regulile din motor"))
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 14)
@@ -142,9 +142,9 @@ struct RulesManagerView: View {
 
     private var emptyMessage: String {
         switch selection {
-        case .verifiedApps: return "Nicio aplicație aprobată încă.\nPrima dată când un program cere internet, te întreb."
-        case .systemServices: return "Niciun serviciu de sistem în listă."
-        case .blocked: return "N-ai blocat nimic până acum."
+        case .verifiedApps: return L("Nicio aplicație aprobată încă.\nPrima dată când un program cere internet, te întreb.")
+        case .systemServices: return L("Niciun serviciu de sistem în listă.")
+        case .blocked: return L("N-ai blocat nimic până acum.")
         }
     }
 

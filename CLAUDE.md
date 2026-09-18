@@ -1137,7 +1137,9 @@ e o opțiune fără consecințe.
 
 Mesajul acela e singurul text din aplicație tradus RO/EN/ES
 (`Localization.swift`): interfața rămâne deliberat doar în română, dar un
-avertisment de securitate trebuie înțeles și de cine nu citește română.
+avertisment de securitate trebuie înțeles și de cine nu citește română. **[ÎNVECHIT
+2026-09-18]** Cristi a cerut interfața completă în RO/EN/ES (v2.2.0) — vezi
+jurnalul.
 
 `version` rămâne în `update.json` pentru totdeauna, sinonim cu `app_version`
 (Regula 35). `download_url` se decodează tolerant — și string, și dicționar.
@@ -1180,6 +1182,17 @@ macOS/GDCFirewall/Sources/GDCFirewall/
 
 ### Jurnal
 
+- **2026-09-18 — v2.2.0.** Interfața în RO/EN/ES: `L("text românesc")` +
+  `Resources/{en,es}.lproj/GDC.strings` (tabel `GDC`, nu `Localizable`, care e
+  al motorului). În ținta Xcode, `xx.lproj` intră ca referințe de folder
+  (`integrate-engine.rb`). Traducerile se editează în
+  `scripts/l10n/translations.py`, care regenerează fișierele `.strings`;
+  `check-l10n.sh` pică build-ul la orice cheie lipsă, specificator diferit,
+  text neîmpachetat sau `L(variabilă)`. Ghidul PDF e acum
+  `installer/generate-guide.swift`. Capcană găsită: `NSTextBlock` +
+  paginarea `NSLayoutManager` intră în buclă infinită când o casetă cade
+  între pagini, deci generatorul își face singur așezarea. Ghidul vechi
+  încălca Regula 3 („nu este un preț”).
 - **2026-09-18 — v2.1.0.** `INSTALL_DIRECTORY` din `consts.h` nu fusese
   redenumit: daemon-ul GDC scria în `/Library/Objective-See/LuLu`, folderul
   unui LuLu real (pe Mac-ul de test: 220 de reguli ale utilizatorului + 5

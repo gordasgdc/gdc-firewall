@@ -41,7 +41,8 @@ fi
 grep -qF "$IDENTITY" < <(security find-identity -v -p codesigning) \
   || fail "Lipseste din Keychain: ${IDENTITY}"
 
-# --- 2. Integrarea — reaplicată mereu (lista de surse e un instantaneu) --
+# --- 2. Traduceri + integrare (reaplicată mereu: lista de surse e un instantaneu)
+bash "$ROOT/scripts/check-l10n.sh"
 bash "$ROOT/scripts/integrate-engine.sh"
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$ROOT/macOS/GDCFirewall/Resources/Info.plist")"
 
@@ -196,6 +197,11 @@ CONSTS="$(dirname "$PROJECT")/Shared/consts.h"
 define() { sed -nE "s/^#define[[:space:]]+$1[[:space:]]+@?\"([^\"]*)\".*/\1/p" "$CONSTS" | head -n1; }
 REQ="anchor apple generic and identifier \"$(define APP_ID)\" and certificate leaf [subject.CN] = \"$(define SIGNING_AUTH)\" and info [CFBundleShortVersionString] >= \"2.0.0\""
 codesign --verify -R="$REQ" "$APP" 2>/dev/null || fail "Aplicatia nu satisface cerinta XPC a extensiei: ${REQ}"
+# Traducerile ajung în pachet: fără ele, L10n cade tăcut pe română.
+for lang in en es; do
+  [ -f "$APP/Contents/Resources/${lang}.lproj/GDC.strings" ] || fail "Lipseste ${lang}.lproj/GDC.strings din aplicatie."
+done
+
 # Daemon-ul GDC NU are voie să scrie în folderul unui LuLu real instalat pe
 # același Mac — i-ar citi și modifica regulile (s-a întâmplat, v2.0.x).
 EXT_BIN="$SYSEX/Contents/MacOS/${EXT_ID}"

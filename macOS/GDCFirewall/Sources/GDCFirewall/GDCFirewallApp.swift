@@ -4,20 +4,22 @@ import AppKit
 @main
 struct GDCFirewallApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    /// Schimbarea limbii din Setări reconstruiește ferestrele deschise.
+    @AppStorage(Lang.preferenceKey) private var language = Lang.systemValue
 
     var body: some Scene {
         // Aplicația trăiește în bara de meniu (`LSUIElement`): fereastra de
         // reguli și alertele se deschid la cerere, nu la pornire.
         MenuBarExtra("GDC Firewall", systemImage: "shield.lefthalf.filled") {
-            MenuBarContent()
+            MenuBarContent().id(language)
         }
 
         Settings {
-            SettingsView()
+            SettingsView().id(language)
         }
 
-        Window("Reguli", id: "rules") {
-            RulesManagerView()
+        Window(L("Reguli"), id: "rules") {
+            RulesManagerView().id(language)
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 920, height: 600)
@@ -33,17 +35,17 @@ private struct MenuBarContent: View {
     /// Până la aprobarea din Setări aplicația pare pornită și nu filtrează
     /// nimic — starea extensiei se spune explicit, nu se ascunde sub „oprit”.
     private var statusText: String {
-        if sysex.state == .filterOff { return "Filtrare oprită" }
-        if bridge.isConnected { return "Protecție activă" }
+        if sysex.state == .filterOff { return L("Filtrare oprită") }
+        if bridge.isConnected { return L("Protecție activă") }
         switch sysex.state {
         case .active where bridge.failedReconnects >= DaemonBridge.restartHintThreshold:
             // Filtrul rulează, dar fără interfață: motorul permite tot, fără
             // alerte. Cauza cunoscută: înlocuirea extensiei la actualizare.
-            return "Repornește Mac-ul pentru a finaliza actualizarea"
-        case .requesting: return "Se activează extensia…"
-        case .needsApproval: return "Aprobă extensia în Setări de sistem"
-        case .failed(let reason): return "Extensia nu a pornit: \(reason)"
-        case .unknown, .active, .filterOff: return "Motor oprit"
+            return L("Repornește Mac-ul pentru a finaliza actualizarea")
+        case .requesting: return L("Se activează extensia…")
+        case .needsApproval: return L("Aprobă extensia în Setări de sistem")
+        case .failed(let reason): return L("Extensia nu a pornit: %@", reason)
+        case .unknown, .active, .filterOff: return L("Motor oprit")
         }
     }
 
@@ -51,7 +53,7 @@ private struct MenuBarContent: View {
         Text(statusText)
 
         if sysex.state == .active || sysex.state == .filterOff {
-            Toggle("Filtrare activă", isOn: Binding(
+            Toggle(L("Filtrare activă"), isOn: Binding(
                 get: { sysex.state == .active },
                 set: { sysex.setFilterEnabled($0) }
             ))
@@ -59,20 +61,20 @@ private struct MenuBarContent: View {
 
         Divider()
 
-        Button("Reguli…") { openWindow(id: "rules") }
+        Button(L("Reguli…")) { openWindow(id: "rules") }
             .keyboardShortcut("r")
 
-        Toggle("Mod Silențios", isOn: $autoPilot.isEnabled)
-        Button("Importă reguli din alte firewall-uri…") { AuxWindowPresenter.showSetup() }
+        Toggle(L("Mod Silențios"), isOn: $autoPilot.isEnabled)
+        Button(L("Importă reguli din alte firewall-uri…")) { AuxWindowPresenter.showSetup() }
 
         Divider()
 
-        Button("Verifică actualizări…") { UpdateChecker.shared.checkManually() }
-        Button("Despre GDC Firewall") { AuxWindowPresenter.showAbout() }
+        Button(L("Verifică actualizări…")) { UpdateChecker.shared.checkManually() }
+        Button(L("Despre GDC Firewall")) { AuxWindowPresenter.showAbout() }
 
         Divider()
 
-        Button("Ieșire") { NSApp.terminate(nil) }
+        Button(L("Ieșire")) { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
 }

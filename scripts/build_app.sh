@@ -17,6 +17,7 @@ ENTITLEMENTS="$PKG_DIR/codesigning/GDCFirewall.entitlements"
 
 # 0. Motorul trebuie să fie prezent și NEATINS înainte de orice build.
 bash "$ROOT/scripts/fetch-engine.sh"
+bash "$ROOT/scripts/check-l10n.sh"
 
 echo "→ Compilare release (swift build -c release)…"
 cd "$PKG_DIR"
@@ -87,6 +88,9 @@ rm -rf "$STAGE"; mkdir -p "$STAGE"
 cp -R "$APP_PATH" "$STAGE/"
 # Regula 6 — arhiva are la rădăcină EXACT: .app, dezinstalator, PDF.
 cp "$PKG_DIR/Dezinstalare_GDCFirewall.command" "$STAGE/"
+# Ghidul se regenerează la fiecare build, din cod: un PDF vechi în arhivă ar
+# descrie butoane care nu mai există.
+swift "$ROOT/installer/generate-guide.swift"
 if [ -f "$ROOT/installer/Instructiuni_Utilizare.pdf" ]; then
   cp "$ROOT/installer/Instructiuni_Utilizare.pdf" "$STAGE/"
 else

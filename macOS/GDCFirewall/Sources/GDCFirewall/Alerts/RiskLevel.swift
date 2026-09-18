@@ -21,9 +21,9 @@ enum RiskLevel: Int, Comparable {
 
     var title: String {
         switch self {
-        case .safe: return "Sigur"
-        case .known: return "Aplicație cunoscută"
-        case .unknown: return "Neidentificat"
+        case .safe: return L("Sigur")
+        case .known: return L("Aplicație cunoscută")
+        case .unknown: return L("Neidentificat")
         }
     }
 
@@ -31,20 +31,20 @@ enum RiskLevel: Int, Comparable {
     /// utilizator care nu știe ce e un „proces”.
     var recommendation: String {
         switch self {
-        case .safe: return "Aprobă (Recomandat)"
-        case .known: return "Verifică aplicația"
-        case .unknown: return "Blochează accesul"
+        case .safe: return L("Aprobă (Recomandat)")
+        case .known: return L("Verifică aplicația")
+        case .unknown: return L("Blochează accesul")
         }
     }
 
     var explanation: String {
         switch self {
         case .safe:
-            return "Face parte din macOS și e semnat oficial de Apple. Blocarea lui poate strica funcții ale sistemului."
+            return L("Face parte din macOS și e semnat oficial de Apple. Blocarea lui poate strica funcții ale sistemului.")
         case .known:
-            return "Aplicația e semnată de un dezvoltator identificat, dar nu face parte din macOS. Aprob-o doar dacă o recunoști."
+            return L("Aplicația e semnată de un dezvoltator identificat, dar nu face parte din macOS. Aprob-o doar dacă o recunoști.")
         case .unknown:
-            return "Nu am putut identifica cine a scris acest program. Dacă nu l-ai instalat tu conștient, blochează-l."
+            return L("Nu am putut identifica cine a scris acest program. Dacă nu l-ai instalat tu conștient, blochează-l.")
         }
     }
 

@@ -16,21 +16,21 @@ struct SetupView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Configurare inițială")
+            Text(L("Configurare inițială"))
                 .font(.title2.bold())
-            Text("Două firewall-uri active pe același Mac îți cer permisiune de două ori pentru aceeași conexiune. Poți prelua regulile lor în GDC Firewall, apoi să le oprești.")
+            Text(L("Două firewall-uri active pe același Mac îți cer permisiune de două ori pentru aceeași conexiune. Poți prelua regulile lor în GDC Firewall, apoi să le oprești."))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if loading {
-                        ProgressView("Caut alte firewall-uri…")
+                        ProgressView(L("Caut alte firewall-uri…"))
                     } else if firewalls.isEmpty {
-                        Label("Nu am găsit alte firewall-uri pe acest Mac.", systemImage: "checkmark.shield")
+                        Label(L("Nu am găsit alte firewall-uri pe acest Mac."), systemImage: "checkmark.shield")
                     } else {
                         ForEach(firewalls) { card($0) }
-                        Text("macOS nu permite unei aplicații să oprească firewall-ul altui producător — pasul acesta îl faci tu, din aplicația lui.")
+                        Text(L("macOS nu permite unei aplicații să oprească firewall-ul altui producător — pasul acesta îl faci tu, din aplicația lui."))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -40,14 +40,14 @@ struct SetupView: View {
             }
 
             if !bridge.isConnected && !firewalls.isEmpty {
-                Label("Importul devine disponibil după ce motorul GDC e conectat.", systemImage: "exclamationmark.triangle.fill")
+                Label(L("Importul devine disponibil după ce motorul GDC e conectat."), systemImage: "exclamationmark.triangle.fill")
                     .symbolRenderingMode(.multicolor)
                     .font(.footnote)
             }
 
             HStack {
                 Spacer()
-                Button("Gata", action: onDone)
+                Button(L("Gata"), action: onDone)
                     .keyboardShortcut(.defaultAction)
             }
         }
@@ -71,13 +71,13 @@ struct SetupView: View {
             }
 
             HStack {
-                Button("Importă regulile") { importRules(from: firewall) }
+                Button(L("Importă regulile")) { importRules(from: firewall) }
                 if firewall.kind == .littleSnitch {
-                    Button("Din fișier…") { importFromFile(firewall) }
-                        .help("Un fișier .lsrules sau un export JSON salvat din Little Snitch")
+                    Button(L("Din fișier…")) { importFromFile(firewall) }
+                        .help(L("Un fișier .lsrules sau un export JSON salvat din Little Snitch"))
                 }
                 if firewall.kind == .littleSnitch || firewall.extensionState != nil {
-                    Button("Cum îl opresc") {
+                    Button(L("Cum îl opresc")) {
                         if expanded.contains(firewall.id) { expanded.remove(firewall.id) } else { expanded.insert(firewall.id) }
                     }
                 }
@@ -100,9 +100,9 @@ struct SetupView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     if let url = firewall.appURL {
-                        Button("Deschide \(firewall.name)") { NSWorkspace.shared.open(url) }
+                        Button(L("Deschide %@", firewall.name)) { NSWorkspace.shared.open(url) }
                     }
-                    Button("Deschide Setări → Rețea") {
+                    Button(L("Deschide Setări → Rețea")) {
                         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Network-Settings.extension")!)
                     }
                 }
@@ -124,7 +124,7 @@ struct SetupView: View {
                 return try RuleImporter.importLuLu(existing: existing)
             case .littleSnitch:
                 guard let app = firewall.appURL else {
-                    throw RuleImporter.ImportError.exportFailed("aplicația Little Snitch nu e instalată — folosește „Din fișier…”")
+                    throw RuleImporter.ImportError.exportFailed(L("aplicația Little Snitch nu e instalată — folosește „Din fișier…”"))
                 }
                 let data = try RuleImporter.exportLittleSnitchModel(appURL: app)
                 return try RuleImporter.importLittleSnitch(data: data, existing: existing)
@@ -135,7 +135,7 @@ struct SetupView: View {
     private func importFromFile(_ firewall: ForeignFirewall) {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.json] + [UTType(filenameExtension: "lsrules")].compactMap { $0 }
-        panel.message = "Alege regulile exportate din Little Snitch (.lsrules sau JSON)"
+        panel.message = L("Alege regulile exportate din Little Snitch (.lsrules sau JSON)")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let existing = bridge.ruleSignatures
         run(firewall) {
@@ -182,7 +182,7 @@ enum FirstRunSetup {
 
 extension AuxWindowPresenter {
     static func showSetup() {
-        present(id: "setup", title: "Configurare GDC Firewall", size: NSSize(width: 580, height: 540)) {
+        present(id: "setup", title: L("Configurare GDC Firewall"), size: NSSize(width: 580, height: 540)) {
             SetupView {
                 UserDefaults.standard.set(true, forKey: FirstRunSetup.completedKey)
                 close(id: "setup")

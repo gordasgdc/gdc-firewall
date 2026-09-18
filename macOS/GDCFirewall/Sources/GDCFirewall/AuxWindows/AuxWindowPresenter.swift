@@ -44,7 +44,7 @@ enum AuxWindowPresenter {
 
 extension AuxWindowPresenter {
     static func showAbout() {
-        present(id: "about", title: "Despre GDC Firewall", size: NSSize(width: 340, height: 360)) {
+        present(id: "about", title: L("Despre GDC Firewall"), size: NSSize(width: 340, height: 360)) {
             AboutView()
         }
     }

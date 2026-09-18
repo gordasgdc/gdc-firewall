@@ -12,17 +12,17 @@ enum BlocklistLevel: String, CaseIterable, Identifiable, Codable {
 
     var title: String {
         switch self {
-        case .minim: return "Minim (Recomandat)"
-        case .mediu: return "Mediu"
-        case .maxim: return "Maxim (Pornografie & Pariuri)"
+        case .minim: return L("Minim (Recomandat)")
+        case .mediu: return L("Mediu")
+        case .maxim: return L("Maxim (Pornografie & Pariuri)")
         }
     }
 
     var summary: String {
         switch self {
-        case .minim: return "Blochează doar domeniile confirmate de malware, phishing și telemetrie agresivă."
-        case .mediu: return "Adaugă blocarea reclamelor comune și a scripturilor de urmărire."
-        case .maxim: return "Adaugă conținutul pentru adulți și site-urile de jocuri de noroc."
+        case .minim: return L("Blochează doar domeniile confirmate de malware, phishing și telemetrie agresivă.")
+        case .mediu: return L("Adaugă blocarea reclamelor comune și a scripturilor de urmărire.")
+        case .maxim: return L("Adaugă conținutul pentru adulți și site-urile de jocuri de noroc.")
         }
     }
 

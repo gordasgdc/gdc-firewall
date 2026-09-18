@@ -47,7 +47,7 @@ struct RuleRow: View {
                 ))
                 .toggleStyle(.switch)
                 .labelsHidden()
-                .help(rule.action == .allow ? "Are acces la internet" : "Accesul e blocat")
+                .help(rule.action == .allow ? L("Are acces la internet") : L("Accesul e blocat"))
 
                 Button {
                     onDelete()
@@ -56,7 +56,7 @@ struct RuleRow: View {
                 }
                 .buttonStyle(.borderless)
                 .opacity(isHovered ? 1 : 0)
-                .help("Șterge regula — te voi întreba din nou data viitoare")
+                .help(L("Șterge regula — te voi întreba din nou data viitoare"))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
@@ -69,7 +69,7 @@ struct RuleRow: View {
     @ViewBuilder private var badge: some View {
         if rule.connectionCount > 0 {
             VStack(alignment: .trailing, spacing: 1) {
-                Text("\(rule.connectionCount) conexiuni")
+                Text(L("%d conexiuni", rule.connectionCount))
                     .font(.caption2.monospacedDigit())
                 if let last = rule.lastConnection {
                     Text(last, style: .relative)

@@ -19,9 +19,9 @@ enum SelfUpdater {
 
         var errorDescription: String? {
             switch self {
-            case .downloadFailed(let detail): return "Descărcarea a eșuat: \(detail)"
-            case .archiveInvalid(let detail): return "Arhiva descărcată nu e validă: \(detail)"
-            case .installScriptFailed(let detail): return "Nu am putut porni instalarea: \(detail)"
+            case .downloadFailed(let detail): return L("Descărcarea a eșuat: %@", detail)
+            case .archiveInvalid(let detail): return L("Arhiva descărcată nu e validă: %@", detail)
+            case .installScriptFailed(let detail): return L("Nu am putut porni instalarea: %@", detail)
             }
         }
     }
@@ -40,10 +40,10 @@ enum SelfUpdater {
             let isZip = pkgURL.pathExtension.lowercased() == "zip"
             let downloaded = tempDir.appendingPathComponent("GDCFirewall-\(version).\(isZip ? "zip" : "pkg")")
 
-            progress.setStatus("Se descarcă actualizarea…")
+            progress.setStatus(L("Se descarcă actualizarea…"))
             try await download(from: pkgURL, to: downloaded)
 
-            progress.setStatus("Se instalează…")
+            progress.setStatus(L("Se instalează…"))
             if isZip {
                 let newApp = try await Task.detached { try extractApp(fromZip: downloaded, into: tempDir, expectedVersion: version) }.value
                 let target = installTarget(for: newApp).path
@@ -93,18 +93,18 @@ enum SelfUpdater {
         }
         ditto.waitUntilExit()
         guard ditto.terminationStatus == 0 else {
-            throw UpdateError.archiveInvalid("dezarhivarea a eșuat (cod \(ditto.terminationStatus))")
+            throw UpdateError.archiveInvalid(L("dezarhivarea a eșuat (cod %d)", Int(ditto.terminationStatus)))
         }
 
         let items = (try? FileManager.default.contentsOfDirectory(at: dest, includingPropertiesForKeys: nil)) ?? []
         guard let app = items.first(where: { $0.pathExtension == "app" }) else {
-            throw UpdateError.archiveInvalid("nu conține aplicația")
+            throw UpdateError.archiveInvalid(L("nu conține aplicația"))
         }
         // O arhivă rămasă în urmă pe server ar reinstala versiunea veche, iar
         // pop-up-ul de update ar reapărea la nesfârșit.
         let found = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         guard found == expectedVersion else {
-            throw UpdateError.archiveInvalid("conține versiunea \(found ?? "necunoscută"), nu \(expectedVersion)")
+            throw UpdateError.archiveInvalid(L("conține versiunea %@, nu %@", found ?? L("necunoscută"), expectedVersion))
         }
         return app
     }
@@ -169,9 +169,9 @@ enum SelfUpdater {
     private static func presentFailure(_ error: Error, fallbackURL: URL) {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Actualizarea a eșuat"
-        alert.informativeText = "\(error.localizedDescription)\n\nPoți descărca manual ultima versiune de pe gordas.dev."
-        alert.addButton(withTitle: "Deschide pagina")
+        alert.messageText = L("Actualizarea a eșuat")
+        alert.informativeText = error.localizedDescription + "\n\n" + L("Poți descărca manual ultima versiune de pe gordas.dev.")
+        alert.addButton(withTitle: L("Deschide pagina"))
         alert.addButton(withTitle: "OK")
         if alert.runModal() == .alertFirstButtonReturn {
             NSWorkspace.shared.open(fallbackURL)
@@ -194,7 +194,7 @@ final class UpdateProgressWindow {
             backing: .buffered,
             defer: false
         )
-        window.title = "Actualizare"
+        window.title = L("Actualizare")
         window.isReleasedWhenClosed = false
         window.level = .floating
         window.center()

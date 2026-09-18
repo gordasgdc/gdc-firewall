@@ -4,9 +4,9 @@ struct SettingsView: View {
     var body: some View {
         TabView {
             GeneralSettings()
-                .tabItem { Label("General", systemImage: "gearshape") }
+                .tabItem { Label(L("General"), systemImage: "gearshape") }
             FilteringSettings()
-                .tabItem { Label("Filtrare & AdBlock", systemImage: "shield.lefthalf.filled") }
+                .tabItem { Label(L("Filtrare & AdBlock"), systemImage: "shield.lefthalf.filled") }
         }
         .frame(width: 520)
     }
@@ -17,38 +17,43 @@ struct SettingsView: View {
 private struct GeneralSettings: View {
     @ObservedObject private var autoPilot = AutoPilot.shared
     @ObservedObject private var theme = ThemeManager.shared
+    @AppStorage(Lang.preferenceKey) private var language = Lang.systemValue
 
     var body: some View {
         Form {
             Section {
-                Toggle("Mod Silențios (Aprobare inteligentă)", isOn: $autoPilot.isEnabled)
-                Text("Aprobă automat serviciile semnate oficial de Apple, ca să nu te întreb de zeci de ori despre componente ale macOS. Tot ce nu e Apple te întreabă în continuare, de fiecare dată.")
+                Toggle(L("Mod Silențios (Aprobare inteligentă)"), isOn: $autoPilot.isEnabled)
+                Text(L("Aprobă automat serviciile semnate oficial de Apple, ca să nu te întreb de zeci de ori despre componente ale macOS. Tot ce nu e Apple te întreabă în continuare, de fiecare dată."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
                 if !autoPilot.silentlyApproved.isEmpty {
-                    DisclosureGroup("Aprobate automat (\(autoPilot.silentlyApproved.count))") {
+                    DisclosureGroup(L("Aprobate automat (%d)", autoPilot.silentlyApproved.count)) {
                         ForEach(autoPilot.silentlyApproved, id: \.self) { name in
                             Text(name).font(.caption)
                         }
-                        Button("Golește jurnalul") { autoPilot.clearLog() }
+                        Button(L("Golește jurnalul")) { autoPilot.clearLog() }
                             .buttonStyle(.link)
                     }
                 }
             } header: {
-                Text("Alerte")
+                Text(L("Alerte"))
             }
 
             Section {
-                Picker("Temă", selection: Binding(
+                Picker(L("Temă"), selection: Binding(
                     get: { theme.current },
                     set: { theme.set($0) }
                 )) {
                     ForEach(AppTheme.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Picker(L("Limbă"), selection: $language) {
+                    Text(L("Sistem")).tag(Lang.systemValue)
+                    ForEach(Lang.allCases) { Text($0.endonym).tag($0.rawValue) }
+                }
             } header: {
-                Text("Aspect")
+                Text(L("Aspect"))
             }
         }
         .formStyle(.grouped)
@@ -64,6 +69,14 @@ private struct GeneralSettings: View {
 /// mai avansat.
 private struct FilteringSettings: View {
     @ObservedObject private var store = BlocklistStore.shared
+
+    /// „acum 5 minute” / „5 minutes ago” / „hace 5 minutos” — în limba aleasă
+    /// în aplicație, nu în cea a sistemului.
+    private static func relative(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = Locale(identifier: Lang.current.rawValue)
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
 
     var body: some View {
         Form {
@@ -81,27 +94,27 @@ private struct FilteringSettings: View {
                     .padding(.vertical, 2)
                 }
             } header: {
-                Text("Nivele de filtrare")
+                Text(L("Nivele de filtrare"))
             } footer: {
-                Text("Nivelele se adună: dacă bifezi Maxim, primești și ce blochează Minim și Mediu.")
+                Text(L("Nivelele se adună: dacă bifezi Maxim, primești și ce blochează Minim și Mediu."))
                     .font(.caption)
             }
 
             Section {
-                LabeledContent("Domenii în listă") {
+                LabeledContent(L("Domenii în listă")) {
                     Text(store.domainCount == 0 ? "—" : "\(store.domainCount)")
                         .monospacedDigit()
                 }
-                LabeledContent("Ultima actualizare") {
+                LabeledContent(L("Ultima actualizare")) {
                     if let date = store.lastUpdated {
-                        Text(date, style: .relative) + Text(" în urmă")
+                        Text(Self.relative(date))
                     } else {
-                        Text("niciodată")
+                        Text(L("niciodată"))
                     }
                 }
 
                 HStack {
-                    Button("Actualizare liste") { store.refresh() }
+                    Button(L("Actualizare liste")) { store.refresh() }
                         .disabled(store.isUpdating || store.enabledLevels.isEmpty)
                     if store.isUpdating {
                         ProgressView().controlSize(.small)
@@ -114,19 +127,19 @@ private struct FilteringSettings: View {
                         .foregroundStyle(.orange)
                 }
             } header: {
-                Text("Listele")
+                Text(L("Listele"))
             } footer: {
-                Text("Sursa e proiectul open-source StevenBlack/hosts. Listele se țin local, în memorie — filtrarea nu trimite nimic în afară și nu încetinește navigarea.")
+                Text(L("Sursa e proiectul open-source StevenBlack/hosts. Listele se țin local, în memorie — filtrarea nu trimite nimic în afară și nu încetinește navigarea."))
                     .font(.caption)
             }
 
             if !store.allowList.isEmpty {
-                Section("Excepții (permise de tine)") {
+                Section(L("Excepții (permise de tine)")) {
                     ForEach(Array(store.allowList).sorted(), id: \.self) { host in
                         HStack {
                             Text(host).font(.caption.monospaced())
                             Spacer()
-                            Button("Elimină") { store.removeFromAllowList(host) }
+                            Button(L("Elimină")) { store.removeFromAllowList(host) }
                                 .buttonStyle(.link)
                         }
                     }
