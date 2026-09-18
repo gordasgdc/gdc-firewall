@@ -59,6 +59,16 @@ De confirmat live la următorul release (2.3.2 → 2.3.3): calea prin
 actualizarea automată — același `bootout` al jobului vechi, dar rulat de
 scriptul root al SelfUpdater-ului, înainte de relansare.
 
+## De confirmat pe un Mac cu SIP ACTIV (Regula 42)
+
+Mac-ul de dezvoltare are SIP dezactivat; următoarele sunt validate doar acolo:
+1. Înlocuirea secvențială — `launchctl bootout` pe jobul vechi al extensiei
+   (instalare manuală peste o versiune care rulează + actualizarea automată).
+   Semn de eșec: meniul rămâne pe „Actualizarea motorului e amânată”.
+2. `Dezinstalare_GDCFirewall.command` pe calea prin aplicație
+   (`--uninstall-extension`).
+3. `Dezinstalare_LittleSnitch_LuLu.command` pe calea prin Finder.
+
 ## Reluare — de unde continui
 
 ```bash

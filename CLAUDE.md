@@ -190,8 +190,53 @@ macOS/GDCFirewall/Sources/GDCFirewall/
   Settings/                 — Auto-Pilot + preferințe
 ```
 
+### Reguli permanente descoperite la 2.3.x (2026-09-19)
+
+Regulile generale sunt în `~/Developer/CLAUDE.md` (40 — App Translocation,
+41 — link de descărcare versionat, 42 — SIP). Aici, aplicarea lor în repo:
+
+1. **App Translocation** → `AppMover.swift`: copia din `/Applications`
+   primește `com.apple.quarantine` fără bitul 0x0080 (carantina rămâne);
+   instalare deja izolată = reparare pe loc; niciodată copiere peste sine.
+   Testul se face cu arhiva notarizată + carantină `0083` + Archive Utility.
+2. **Arhiva versionată** → `scripts/sync-site.sh` rescrie butonul din
+   `docs/index.html` și `download_url` din `update.json` la
+   `GDCFirewall-macOS-<versiune>.zip` și pică dacă arhiva lipsește; copia
+   `GDCFirewall-macOS.zip` rămâne. Verificare live: `scripts/verify-download.sh <versiune>`.
+3. **Dezactivarea extensiei de rețea cu SIP activ** → singura cale e
+   aplicația care o conține: `GDC Firewall --uninstall-extension`
+   (`UninstallMode.swift`: scoate configurația `NEFilterManager`, apoi
+   `OSSystemExtensionRequest.deactivationRequest`; ieșire 0/2/1).
+   `Dezinstalare_GDCFirewall.command` găsește copiile după bundle ID, pune o
+   copie 2.3.3+ în `/Applications` dacă e nevoie și o apelează;
+   `systemextensionsctl uninstall` e doar rezervă, cu `csrutil status` =
+   dezactivat. Presupunere NEVERIFICATĂ: că dezactivarea, ca și activarea,
+   cere aplicația în `/Applications` — de aceea copia e pusă acolo.
+4. **SIP — ce e validat doar pe Mac-ul de dezvoltare (SIP dezactivat)** și
+   trebuie confirmat pe un Mac cu SIP activ:
+   - înlocuirea secvențială: `launchctl bootout system/NetworkExtension.…`
+     pe jobul vechi (aplicație + scriptul SelfUpdater). Dacă SIP îl
+     blochează, aplicația intră în „Actualizarea motorului e amânată” și
+     rămâne pe extensia veche (funcțională, același motor) — de remediat
+     atunci: la un eșec care NU e anularea utilizatorului, înlocuire directă
+     + mesajul de repornire, în loc de amânare;
+   - dezinstalatorul GDC (calea prin aplicație) și curățarea Little Snitch /
+     LuLu (calea prin Finder, care declanșează dezinstalarea extensiilor).
+
 ### Jurnal
 
+- **2026-09-19 — instrumente, fără versiune nouă de aplicație.**
+  `scripts/Dezinstalare_LittleSnitch_LuLu.command` e acum sursa unică a
+  curățării Little Snitch + LuLu (dublu-clicabilă, se auto-elevează cu
+  `sudo`, pauză la final); `cleanup_competing_firewalls.sh` doar o apelează.
+  `--dry-run --assume-sip-on` arată planul pentru SIP activ (Regula 42):
+  extensiile se scot prin Finder (aplicația la Coș), nu prin
+  `systemextensionsctl`. Instrucțiuni pentru prieteni/clienți:
+  `scripts/Dezinstalare_LittleSnitch_LuLu.md` — metoda principală e
+  `bash <fișier>` în Terminal, fiindcă un `.command` descărcat e blocat de
+  Gatekeeper la dublu-click, iar `bash` citește scriptul ca text. Pachet de
+  trimis: `dist/Dezinstalare_LittleSnitch_LuLu-1.0.0.zip` (local, `dist/` e
+  ignorat de git).
 - **2026-09-19 — v2.3.3.** App Translocation, verificat EMPIRIC pe macOS 26
   (arhivă cu carantină `0083;…;Safari`, dezarhivată cu Archive Utility):
   izolarea depinde DOAR de bitul 0x0080 din `com.apple.quarantine` — `0083`,
