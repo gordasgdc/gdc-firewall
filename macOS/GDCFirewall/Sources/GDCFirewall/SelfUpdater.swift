@@ -38,8 +38,10 @@ enum SelfUpdater {
             try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
             // Fără distincția asta, o arhivă .zip ar ajunge la `installer -pkg`
             // și ar eșua abia după ce aplicația s-a închis — fără niciun mesaj.
-            let isZip = pkgURL.pathExtension.lowercased() == "zip"
-            let downloaded = tempDir.appendingPathComponent("GDCFirewall-\(version).\(isZip ? "zip" : "pkg")")
+            let ext = pkgURL.pathExtension.lowercased()
+            let isDMG = ext == "dmg"
+            let isZip = ext == "zip" || isDMG
+            let downloaded = tempDir.appendingPathComponent("GDCFirewall-\(version).\(isDMG ? "dmg" : isZip ? "zip" : "pkg")")
 
             log.info("Descarc actualizarea \(version) de la \(pkgURL.absoluteString)")
             progress.setStatus(L("Se descarcă actualizarea…"))
@@ -51,7 +53,10 @@ enum SelfUpdater {
             log.info("Instalez \(version) din \(isZip ? "arhivă .zip" : "pachet .pkg")")
             progress.setStatus(L("Se instalează…"))
             if isZip {
-                let newApp = try await Task.detached { try extractApp(fromZip: downloaded, into: tempDir, expectedVersion: version) }.value
+                let newApp = try await Task.detached {
+                    isDMG ? try extractApp(fromDMG: downloaded, into: tempDir, expectedVersion: version)
+                          : try extractApp(fromZip: downloaded, into: tempDir, expectedVersion: version)
+                }.value
                 let target = installTarget(for: newApp).path
                 try runInstallScript(
                     command: "ditto \"\(newApp.path)\" \"\(target).new\" && rm -rf \"\(target)\" && mv \"\(target).new\" \"\(target)\"",
@@ -85,6 +90,41 @@ enum SelfUpdater {
         }
         try? FileManager.default.removeItem(at: destination)
         try FileManager.default.moveItem(at: tempLocation, to: destination)
+    }
+
+    // MARK: - Imagine .dmg
+
+    /// Montează DMG-ul, copiază aplicația în afara volumului și îl demontează.
+    private static func extractApp(fromDMG dmg: URL, into tempDir: URL, expectedVersion: String) throws -> URL {
+        let mount = tempDir.appendingPathComponent("mnt", isDirectory: true)
+        let dest = tempDir.appendingPathComponent("extracted", isDirectory: true)
+        try FileManager.default.createDirectory(at: mount, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: true)
+        func run(_ tool: String, _ args: [String]) -> Int32 {
+            let p = Process()
+            p.executableURL = URL(fileURLWithPath: tool)
+            p.arguments = args
+            do { try p.run() } catch { return -1 }
+            p.waitUntilExit()
+            return p.terminationStatus
+        }
+        guard run("/usr/bin/hdiutil", ["attach", dmg.path, "-mountpoint", mount.path, "-nobrowse", "-readonly", "-quiet"]) == 0 else {
+            throw UpdateError.archiveInvalid(L("imaginea nu s-a putut monta"))
+        }
+        defer { _ = run("/usr/bin/hdiutil", ["detach", mount.path, "-quiet"]) }
+        let src = mount.appendingPathComponent("GDC Firewall.app")
+        guard FileManager.default.fileExists(atPath: src.path) else {
+            throw UpdateError.archiveInvalid(L("nu conține aplicația"))
+        }
+        let app = dest.appendingPathComponent("GDC Firewall.app")
+        guard run("/usr/bin/ditto", [src.path, app.path]) == 0 else {
+            throw UpdateError.archiveInvalid(L("copierea din imagine a eșuat"))
+        }
+        let found = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        guard found == expectedVersion else {
+            throw UpdateError.archiveInvalid(L("conține versiunea %@, nu %@", found ?? L("necunoscută"), expectedVersion))
+        }
+        return app
     }
 
     // MARK: - Arhivă .zip

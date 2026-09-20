@@ -54,7 +54,7 @@ fi
 # update.json duc la numele VERSIONAT (un client care redescarca nu mai ajunge
 # la „GDCFirewall-macOS (1).zip” si stie ce versiune are pe disc). Copia cu nume
 # stabil ramane publicata alaturi (Regula 17), pentru linkuri fixe.
-ZIP_NAME="GDCFirewall-macOS-$APP_VERSION.zip"
+ZIP_NAME="GDCFirewall-macOS-$APP_VERSION.dmg"
 ZIP="$ROOT/dist/$ZIP_NAME"
 if [ ! -f "$ZIP" ]; then
   echo "‼️  $ZIP lipseste — ruleaza intai ./scripts/release_engine.sh."
@@ -62,12 +62,26 @@ if [ ! -f "$ZIP" ]; then
   exit 1
 fi
 mkdir -p "$SITE_DIR"
-sed -i '' -E "s#(id=\"download\" href=\")GDCFirewall-macOS[^\"]*\.zip\"#\1$ZIP_NAME\"#" "$ROOT/docs/index.html"
+sed -i '' -E "s#(id=\"download\" href=\")GDCFirewall-macOS[^\"]*\.(zip|dmg)\"#\1$ZIP_NAME\"#" "$ROOT/docs/index.html"
 grep -q "id=\"download\" href=\"$ZIP_NAME\"" "$ROOT/docs/index.html" \
   || { echo "‼️  Nu am putut scrie linkul versionat in docs/index.html"; exit 1; }
 cp "$ROOT/docs/index.html" "$SITE_DIR/index.html"
 cp "$ZIP" "$SITE_DIR/$ZIP_NAME"
-cp "$ZIP" "$SITE_DIR/GDCFirewall-macOS.zip"
+cp "$ZIP" "$SITE_DIR/GDCFirewall-macOS.dmg"
+
+# Canal de compatibilitate pentru Self-Updater-ul instalarilor <= 2.3.3, care
+# stie doar .zip/.pkg (pe .dmg ar rula `installer -pkg` si ar esua). Zip-ul
+# se face din aplicatia din DMG-ul notarizat; il descarca doar updaterul
+# (URLSession, fara browser), nu clientul. Butonul paginii ramane DMG.
+UPD_ZIP_NAME="GDCFirewall-macOS-$APP_VERSION.zip"
+MNT="$(mktemp -d)"; UZ="$(mktemp -d)"
+hdiutil attach "$ZIP" -mountpoint "$MNT" -nobrowse -readonly -quiet
+ditto "$MNT/GDC Firewall.app" "$UZ/GDC Firewall.app"
+hdiutil detach "$MNT" -quiet
+rm -f "$SITE_DIR/$UPD_ZIP_NAME"
+(cd "$UZ" && ditto -c -k --sequesterRsrc . "$SITE_DIR/$UPD_ZIP_NAME")
+rm -rf "$UZ" "$MNT"
+cp "$SITE_DIR/$UPD_ZIP_NAME" "$SITE_DIR/GDCFirewall-macOS.zip"
 
 python3 - "$ROOT/docs/update.json" "$SITE_DIR/update.json" "$APP_VERSION" "$ENGINE_VERSION" <<'PY'
 import json, pathlib, sys
@@ -81,7 +95,11 @@ data["version"] = app_version
 data["engine_version_required"] = engine_version
 # Tipul campului ramane dictionar {mac: url} (Regula 35); doar numele arhivei
 # poarta acum versiunea.
-data["download_url"] = {"mac": f"https://gordas.dev/gdc-firewall/GDCFirewall-macOS-{app_version}.zip"}
+data["download_url"] = {
+    # `mac` ramane .zip: Self-Updater-ul <= 2.3.3 nu instaleaza .dmg. Cel nou le stie pe ambele.
+    "mac": f"https://gordas.dev/gdc-firewall/GDCFirewall-macOS-{app_version}.zip",
+    "mac_dmg": f"https://gordas.dev/gdc-firewall/GDCFirewall-macOS-{app_version}.dmg",
+}
 
 for path in (src, dst):
     pathlib.Path(path).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")

@@ -53,6 +53,7 @@
 "Aprobă" = "Aprobar";
 "Aprobă (Recomandat)" = "Aprobar (Recomendado)";
 "Aprobă automat serviciile semnate oficial de Apple, ca să nu te întreb de zeci de ori despre componente ale macOS. Tot ce nu e Apple te întreabă în continuare, de fiecare dată." = "Aprueba automáticamente los servicios firmados oficialmente por Apple, para no preguntarte decenas de veces por componentes de macOS. Todo lo que no sea de Apple te sigue preguntando, cada vez.";
+"Aprobă extensia de rețea" = "Aprueba la extensión de red";
 "Aprobă extensia în Setări de sistem" = "Aprueba la extensión en Ajustes del Sistema";
 "Aprobă toate" = "Aprobar todas";
 "Arată din nou toate regulile" = "Mostrar de nuevo todas las reglas";
@@ -72,6 +73,7 @@
 "Blocklist" = "Lista de bloqueo";
 "Blocklist StevenBlack" = "Lista de bloqueo StevenBlack";
 "Blocklist-uri" = "Listas de bloqueo";
+"Ca să filtreze conexiunile, GDC Firewall are nevoie de aprobarea ta o singură dată. În Setări de sistem → Confidențialitate și securitate apasă „Permite” lângă GDC Firewall." = "Para filtrar conexiones, GDC Firewall necesita tu aprobación una vez. En Ajustes del Sistema → Privacidad y seguridad, pulsa “Permitir” junto a GDC Firewall.";
 "Cale" = "Ruta";
 "Calea executabilului" = "Ruta del ejecutable";
 "Calea regulii a fost mutată la %@" = "La ruta de la regla se movió a %@";
@@ -101,6 +103,8 @@
 "De ce te întreb" = "Por qué te pregunto";
 "Decizia ta" = "Tu decisión";
 "Deschide %@" = "Abrir %@";
+"Deschide Setări de sistem" = "Abrir Ajustes del Sistema";
+"Deschide Setări de sistem…" = "Abrir Ajustes del Sistema…";
 "Deschide Setări → Rețea" = "Abrir Ajustes → Red";
 "Deschide o sesiune de terminal către alt calculator." = "Abre una sesión de terminal hacia otro ordenador.";
 "Deschide pagina" = "Abrir página";
@@ -333,6 +337,7 @@
 "cod %d" = "código %d";
 "conține versiunea %@, nu %@" = "contiene la versión %@, no la %@";
 "copia din /Applications are versiunea %@" = "la copia en /Applications es la versión %@";
+"copierea din imagine a eșuat" = "falló la copia desde la imagen";
 "cu alt protocol decât TCP/UDP" = "con un protocolo distinto de TCP/UDP";
 "cu destinație specială (rețea locală, Bonjour…)" = "con un destino especial (red local, Bonjour…)";
 "cu interval de adrese" = "con un rango de direcciones";
@@ -352,6 +357,7 @@
 "fișierul nu e JSON" = "el archivo no es JSON";
 "format necunoscut" = "formato desconocido";
 "fără cale" = "sin ruta";
+"imaginea nu s-a putut monta" = "no se pudo montar la imagen";
 "macOS a pornit noua versiune a filtrului fără legătura cu aplicația. Regulile tale se aplică în continuare, dar conexiunile noi sunt permise automat până la repornire." = "macOS inició la nueva versión del filtro sin su conexión con la app. Tus reglas se siguen aplicando, pero las conexiones nuevas se permiten automáticamente hasta que reinicies.";
 "macOS a pornit noua versiune a filtrului fără legătura cu aplicația. Regulile tale se aplică în continuare, iar conexiunile noi sunt blocate până la repornire." = "macOS inició la nueva versión del filtro sin su conexión con la app. Tus reglas se siguen aplicando y las conexiones nuevas se bloquean hasta que reinicies.";
 "macOS nu permite unei aplicații să oprească firewall-ul altui producător — pasul acesta îl faci tu, din aplicația lui." = "macOS no permite que una app desactive el firewall de otro fabricante: este paso lo haces tú, desde su propia app.";

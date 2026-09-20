@@ -140,6 +140,34 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
     func requestNeedsUserApproval(_ request: OSSystemExtensionRequest) {
         log.info("Extensia așteaptă aprobarea utilizatorului")
         state = .needsApproval
+        presentApprovalGuideOnce()
+    }
+
+    private static let approvalURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Security")!
+    private var approvalGuideShown = false
+
+    /// Deschide direct panoul Setări de sistem unde se aprobă extensia.
+    func openApprovalSettings() {
+        log.info("Deschid Setări de sistem pentru aprobarea extensiei")
+        NSWorkspace.shared.open(Self.approvalURL)
+    }
+
+    /// Ghid la prima lansare: o singură dată pe sesiune. Aplicația e
+    /// LSUIElement, deci fără activare dialogul poate rămâne ascuns.
+    private func presentApprovalGuideOnce() {
+        guard !approvalGuideShown else { return }
+        approvalGuideShown = true
+        Task { @MainActor in
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+            let alert = NSAlert()
+            alert.messageText = L("Aprobă extensia de rețea")
+            alert.informativeText = L("Ca să filtreze conexiunile, GDC Firewall are nevoie de aprobarea ta o singură dată. În Setări de sistem → Confidențialitate și securitate apasă „Permite” lângă GDC Firewall.")
+            alert.addButton(withTitle: L("Deschide Setări de sistem"))
+            alert.addButton(withTitle: L("Mai târziu"))
+            if alert.runModal() == .alertFirstButtonReturn { self.openApprovalSettings() }
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     func request(_ request: OSSystemExtensionRequest, didFinishWithResult result: OSSystemExtensionRequest.Result) {

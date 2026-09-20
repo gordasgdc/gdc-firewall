@@ -52,28 +52,38 @@ echo "✓ Stapled, acceptată de Gatekeeper (Notarized Developer ID)"
 # --- 4. Ghidul ------------------------------------------------------------
 swift "$ROOT/installer/generate-guide.swift" >/dev/null || fail "Ghidul PDF nu s-a generat"
 
-# --- 5. Arhiva de client (Regula 6: exact 3 fișiere) ----------------------
+# --- 5. DMG semnat + notarizat + stapled (înlocuiește arhiva .zip) --------
+DMG="$DIST/GDCFirewall-macOS-${VERSION}.dmg"
+SIGN_ID="${SIGN_IDENTITY:-Developer ID Application: DUMITRU CRISTINEL GORDAS (8AR6XP8MG7)}"
 STAGE="$WORK/stage"
 mkdir -p "$STAGE" "$DIST"
 ditto "$APP" "$STAGE/GDC Firewall.app"
-cp "$ROOT/macOS/GDCFirewall/Dezinstalare_GDCFirewall.command" "$STAGE/"
 cp "$ROOT/installer/Instructiuni_Utilizare.pdf" "$STAGE/"
-rm -f "$ZIP"
-(cd "$STAGE" && ditto -c -k --sequesterRsrc . "$ZIP")
+ln -s /Applications "$STAGE/Applications"
+rm -f "$DMG"
+hdiutil create -volname "GDC Firewall ${VERSION}" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null \
+  || fail "hdiutil create a eșuat"
+codesign --force --sign "$SIGN_ID" --timestamp "$DMG" || fail "Semnarea DMG a eșuat"
+echo "→ Notarizez DMG-ul…"
+OUT="$(xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait --output-format json)" || fail "notarytool (DMG) a eșuat"
+STATUS="$(printf '%s' "$OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("status",""))')"
+ID="$(printf '%s' "$OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("id",""))')"
+[ "$STATUS" = "Accepted" ] || { xcrun notarytool log "$ID" --keychain-profile "$PROFILE" 2>/dev/null | head -40 >&2; fail "DMG respins (${STATUS})"; }
+xcrun stapler staple "$DMG" >/dev/null || fail "stapler staple (DMG) a eșuat"
+xcrun stapler validate "$DMG" >/dev/null || fail "stapler validate (DMG) a eșuat"
+grep -q "Notarized Developer ID" < <(spctl -a -vv -t open --context context:primary-signature "$DMG" 2>&1) \
+  || fail "Gatekeeper nu acceptă DMG-ul: $(spctl -a -vv -t open --context context:primary-signature "$DMG" 2>&1 | head -2)"
 
-# --- 6. Verificarea arhivei, ca un client --------------------------------
-CHECK="$WORK/check"
-ditto -x -k "$ZIP" "$CHECK"
-COUNT="$(find "$CHECK" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')"
-[ "$COUNT" = "3" ] || fail "Arhiva are ${COUNT} elemente la rădăcină, nu 3."
-CHECKED_APP="$CHECK/GDC Firewall.app"
-[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$CHECKED_APP/Contents/Info.plist")" = "$VERSION" ] \
-  || fail "Versiunea din arhivă diferă de ${VERSION}"
-[ -d "$CHECKED_APP/Contents/Library/SystemExtensions/dev.gordas.GDCFirewall.extension.systemextension" ] \
-  || fail "Arhiva nu conține extensia de rețea"
-codesign --verify --strict --deep "$CHECKED_APP" || fail "Semnătura aplicației din arhivă nu e validă"
-xcrun stapler validate "$CHECKED_APP" >/dev/null || fail "Aplicația din arhivă nu are biletul de notarizare"
+# --- 6. Verificare ca un client: montare, aplicație, extensie, versiune ----
+MNT="$WORK/mnt"; mkdir -p "$MNT"
+hdiutil attach "$DMG" -mountpoint "$MNT" -nobrowse -readonly >/dev/null || fail "DMG nu se montează"
+trap 'hdiutil detach "$MNT" -quiet 2>/dev/null; rm -rf "$WORK"' EXIT
+CHECKED_APP="$MNT/GDC Firewall.app"
+[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$CHECKED_APP/Contents/Info.plist")" = "$VERSION" ] || fail "Versiunea din DMG diferă de ${VERSION}"
+[ -d "$CHECKED_APP/Contents/Library/SystemExtensions/dev.gordas.GDCFirewall.extension.systemextension" ] || fail "DMG-ul nu conține extensia de rețea"
+codesign --verify --strict --deep "$CHECKED_APP" || fail "Semnătura aplicației din DMG nu e validă"
+xcrun stapler validate "$CHECKED_APP" >/dev/null || fail "Aplicația din DMG nu are biletul de notarizare"
+grep -q "Notarized Developer ID" < <(spctl -a -vv -t exec "$CHECKED_APP" 2>&1) || fail "Gatekeeper respinge aplicația din DMG"
 
-echo "✓ ${ZIP##*/}: aplicație + extensie, notarizată și stapled, dezinstalator, ghid PDF"
-echo "  sha256: $(shasum -a 256 "$ZIP" | cut -d' ' -f1)"
-echo "  Publicare: ./scripts/sync-site.sh, apoi commit + push în gdc-plugin-manager-catalog-vendor."
+echo "✓ ${DMG##*/}: semnat, notarizat, stapled, acceptat de Gatekeeper"
+echo "  sha256: $(shasum -a 256 "$DMG" | cut -d' ' -f1)"

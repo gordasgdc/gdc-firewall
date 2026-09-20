@@ -58,6 +58,9 @@ private struct MenuBarContent: View {
 
     var body: some View {
         Text(statusText)
+        if sysex.state == .needsApproval {
+            Button(L("Deschide Setări de sistem…")) { sysex.openApprovalSettings() }
+        }
         if sysex.phase == .deferred {
             Button(L("Finalizează actualizarea motorului…")) { sysex.finishEngineUpdate() }
         }

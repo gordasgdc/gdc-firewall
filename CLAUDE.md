@@ -225,6 +225,19 @@ Regulile generale sunt în `~/Developer/CLAUDE.md` (40 — App Translocation,
 
 ### Jurnal
 
+- **2026-09-20 — v2.3.4. Distribuție DMG notarizat.** Chrome bloca
+  `GDCFirewall-macOS-2.3.3.zip` ca „suspectă”; arhiva a fost înlocuită cu
+  `GDCFirewall-macOS-<v>.dmg` (semnat Developer ID, notarizat, stapled,
+  verificat cu spctl după montare; `release_engine.sh`). Butonul paginii și
+  `download_url.mac_dmg` → DMG. `download_url.mac` RĂMÂNE `.zip` versionat:
+  Self-Updater-ul ≤2.3.3 nu instalează `.dmg` (ar rula `installer -pkg`);
+  `sync-site.sh` face zip-ul din aplicația din DMG (doar canal updater).
+  Self-Updater 2.3.4 știe DMG/zip/pkg. Nou: ghid de aprobare a extensiei
+  (dialog o dată + „Deschide Setări de sistem…” →
+  `Privacy_Security`). Regula 6 („exact 3 fișiere în zip”) nu mai se aplică
+  distribuției: DMG = aplicație + link Aplicații + ghid PDF; dezinstalarea
+  = `GDC Firewall --uninstall-extension`. Nu s-a testat pe un Mac curat.
+
 - **2026-09-19 — instrumente, fără versiune nouă de aplicație.**
   `scripts/Dezinstalare_LittleSnitch_LuLu.command` e acum sursa unică a
   curățării Little Snitch + LuLu (dublu-clicabilă, se auto-elevează cu

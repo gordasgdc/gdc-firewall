@@ -2,6 +2,15 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.3.4 (2026-09-20) — Instalare din DMG notarizat, ghid de aprobare a extensiei
+
+### Changed
+- Distribuția e acum o imagine **DMG** semnată Developer ID, notarizată și stapled (în locul arhivei .zip, blocată de browsere ca „suspectă”). Conține aplicația, un link către Aplicații și ghidul PDF.
+- Actualizarea automată știe să instaleze din DMG.
+
+### Added
+- Când extensia de rețea așteaptă aprobarea, aplicația arată un ghid la pornire și un buton în meniu care deschide direct Setări de sistem → Confidențialitate și securitate.
+
 ## v2.3.3 (2026-09-19) — Mutare în Aplicații fiabilă, dezinstalare completă, arhivă versionată
 
 ### Fixed
