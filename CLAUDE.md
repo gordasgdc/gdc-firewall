@@ -225,6 +225,9 @@ Regulile generale sunt în `~/Developer/CLAUDE.md` (40 — App Translocation,
 
 ### Jurnal
 
+- **2026-09-20 — v2.3.4 verificată LIVE** (`verify-download.sh 2.3.4`: 11 ✓, 0 ✗; DMG + `GDCFirewall-macOS.dmg` stabil
+  publicate). Regula globală 45 (DMG/PKG notarizat, fără `.command`/zip) e în `~/Developer/CLAUDE.md` și
+  `~/Developer/ARCHITECTURE_PATTERNS.md` (K).
 - **2026-09-20 — v2.3.4. Distribuție DMG notarizat.** Chrome bloca
   `GDCFirewall-macOS-2.3.3.zip` ca „suspectă”; arhiva a fost înlocuită cu
   `GDCFirewall-macOS-<v>.dmg` (semnat Developer ID, notarizat, stapled,
