@@ -12,3 +12,6 @@ codesigning/*.cer
 codesigning/*.p8
 *.p12
 *.cer
+
+# Stare de lucru internă (Regula 50), doar local
+PROJECT_STATE.md
