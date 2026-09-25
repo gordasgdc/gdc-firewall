@@ -20,8 +20,11 @@ struct DiagnosticLog {
     }
 
     static let subsystem = "dev.gordas.GDCFirewall"
-    static let fileURL = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library/Logs/GDCFirewall.log")
+    /// Sub XCTest, logul merge într-un fișier temporar: testele nu amestecă
+    /// linii false în jurnalul real (s-a întâmplat la 2.3.5, cu garda).
+    static let fileURL = NSClassFromString("XCTestCase") != nil
+        ? FileManager.default.temporaryDirectory.appendingPathComponent("GDCFirewall-tests.log")
+        : FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/GDCFirewall.log")
     /// Peste plafon, fișierul devine `GDCFirewall.log.1` și se începe unul nou
     /// (Regula 21: nimic nu crește la nesfârșit).
     static let maxBytes: UInt64 = 5 * 1024 * 1024

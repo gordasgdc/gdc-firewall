@@ -15,10 +15,14 @@ import Foundation
 ///     („Found 0 registrations”), iar comutarea filtrului nu-l retrimite —
 ///     doar o activare/înlocuire sau repornirea Mac-ului înregistrează din nou;
 ///   - FĂRĂ job vechi în launchd, înlocuirea se înregistrează curat.
-/// Deci jobul vechi se scoate ÎNAINTE de activare (root: o parolă, sau scriptul
-/// actualizării automate, care rulează deja ca root).
+/// **Cu SIP activ (Mac-urile clienților) `launchctl bootout` pe acest job e
+/// interzis chiar și ca root** („Boot-out failed: 1: Operation not permitted”,
+/// verificat 2026-09-25) — înlocuirea secvențială din 2.3.2–2.3.4 mergea doar
+/// cu SIP dezactivat. Singura cale este API-ul oficial (activare + `.replace`,
+/// ca LuLu upstream); dacă cursa apare, repornirea Mac-ului o rezolvă, iar
+/// garda de actualizare ține necunoscutele blocate până atunci.
 ///
-/// Totul se citește fără root (`launchctl print`); doar scoaterea cere parola.
+/// Totul aici doar citește (`launchctl print`), fără root.
 enum EngineService {
     static let labelPrefix = "NetworkExtension.dev.gordas.GDCFirewall.extension."
     private static let log = DiagnosticLog("engine")
@@ -63,37 +67,26 @@ enum EngineService {
         return false
     }
 
-    enum RestartError: LocalizedError {
-        case cancelled
-        case failed(String)
-        var errorDescription: String? {
-            switch self {
-            case .cancelled: return L("Actualizarea motorului a fost amânată.")
-            case .failed(let detail): return L("Oprirea versiunii vechi a motorului a eșuat: %@", detail)
-            }
-        }
+    /// `true` = în launchd rulează (și) o altă versiune a extensiei decât cea
+    /// din pachetul acestei aplicații: aplicația poate fi conectată la motorul
+    /// VECHI, deci o actualizare e în curs, chiar dacă activarea n-a pornit încă.
+    /// Etichete necitibile (listă goală) sau harnașamentul SPM = nu știm → `false`,
+    /// ca garda să nu rămână blocată pe o citire eșuată.
+    static func isForeignEngine(running: [String], bundled: String?) -> Bool {
+        guard let bundled, !running.isEmpty else { return false }
+        return running.contains { $0 != bundled }
     }
 
-    /// Scoate joburile versiunii vechi (promptul nativ de parolă de
-    /// administrator). `bootout` revine după oprirea procesului (~5 s: motorul
-    /// nu iese la SIGTERM). Blochează — se apelează din afara firului principal.
-    static func removeJobsWithAdmin(_ labels: [String]) throws {
-        let command = labels.map { "/bin/launchctl bootout system/\($0)" }.joined(separator: "; ")
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-e", "do shell script \"\(command)\" with administrator privileges"]
-        let errPipe = Pipe()
-        process.standardError = errPipe
-        process.standardOutput = Pipe()
-        try process.run()
-        let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else {
-            let message = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            if message.contains("-128") { throw RestartError.cancelled }
-            throw RestartError.failed(message.isEmpty ? L("cod %d", Int(process.terminationStatus)) : message)
-        }
-        log.info("Joburi scoase din launchd înainte de activare: \(labels.joined(separator: ", "))")
+    static func foreignEngineRunning() async -> Bool {
+        await Task.detached {
+            let bundled = bundledLabel
+            let running = runningLabels()
+            let foreign = isForeignEngine(running: running, bundled: bundled)
+            if foreign {
+                log.info("Rulează altă versiune a extensiei (\(running.joined(separator: ", "))) decât cea din pachet (\(bundled ?? "?"))")
+            }
+            return foreign
+        }.value
     }
 
     private static func run(_ tool: String, _ arguments: [String]) -> String? {
@@ -110,6 +103,15 @@ enum EngineService {
     }
 }
 
+/// Ce vede garda din motor: `DaemonBridge` în aplicație, un dublu în teste.
+@MainActor
+protocol UpdateGuardEngine: AnyObject {
+    var isConnected: Bool { get }
+    func preferences() async -> [String: Any]?
+    /// Preferințele motorului DUPĂ aplicare (răspunsul lui); `nil` = netrimise sau fără răspuns.
+    func applyPreferences(_ preferences: [String: Any]) async -> [String: Any]?
+}
+
 /// Garda de actualizare: cât timp aplicația nu vorbește cu extensia nouă,
 /// motorul ar PERMITE automat orice conexiune necunoscută (Extension/
 /// FilterDataProvider.m, `allowNoClient`). Modul pasiv e verificat ÎNAINTEA
@@ -120,52 +122,161 @@ enum EngineService {
 ///
 /// Valorile anterioare se păstrează în UserDefaults, ca să fie refăcute și
 /// dacă aplicația cade în mijlocul actualizării.
+///
+/// Bug reparat în 2.3.5 (confirmat în log, 2026-09-20 → 09-22): `release()`
+/// ștergea copia salvată chiar dacă motorul era neconectat, iar următorul
+/// `engage()` salva ca „anterioară” chiar starea gardei — motorul rămânea
+/// definitiv pe „blochează tot ce n-are regulă”. De aceea:
+///   - copia se șterge DOAR după ce motorul confirmă preferințele refăcute
+///     (răspunsul lui `updatePreferences`); altfel se reîncearcă la conectare;
+///   - starea gardei nu e salvată niciodată ca „anterioară” și nici refăcută;
+///   - fără nicio actualizare în curs, un motor rămas în starea gardei e readus
+///     la modul normal (`releaseIfSafe`, la fiecare conectare).
 @MainActor
 enum UpdateGuard {
-    private static let savedKey = "GDCFirewall.updateGuard.previous"
+    static let savedKey = "GDCFirewall.updateGuard.previous"
+    /// `engaged` | `releasing` — ridicarea cerută, dar neconfirmată de motor.
+    static let stateKey = "GDCFirewall.updateGuard.state"
     private static let log = DiagnosticLog("updateguard")
 
-    static var isEngaged: Bool { UserDefaults.standard.dictionary(forKey: savedKey) != nil }
+    // Injectabile pentru teste.
+    static var engine: UpdateGuardEngine = DaemonBridge.shared
+    static var defaults: UserDefaults = .standard
+    /// Actualizare în curs = etapa instalatorului nu e `.idle` SAU rulează încă
+    /// extensia altei versiuni. A doua condiție acoperă cursa de la pornire:
+    /// `connect()` poate ajunge la motorul vechi înainte ca `activate()` să
+    /// fi trecut etapa în `.replacing` (instalare peste o versiune care rulează,
+    /// sau orice actualizare, înainte ca extensia nouă să înlocuiască vechea).
+    static var updateInProgress: () async -> Bool = {
+        if SystemExtensionInstaller.shared.phase != .idle { return true }
+        return await EngineService.foreignEngineRunning()
+    }
+    static var connectPollInterval: UInt64 = 200_000_000
+
+    enum State: String { case engaged, releasing }
+
+    /// Crește la fiecare `engage()`: o ridicare pornită înainte nu mai șterge
+    /// starea unei gărzi aplicate între timp.
+    private static var generation = 0
+
+    static let guardPrefs: [String: Any] = [
+        LuLu.Pref.passiveMode: true,
+        LuLu.Pref.passiveModeAction: LuLu.Pref.passiveBlock,
+        LuLu.Pref.passiveModeRules: LuLu.Pref.passiveRulesNo,
+    ]
+    static let normalPrefs: [String: Any] = [
+        LuLu.Pref.passiveMode: false,
+        LuLu.Pref.passiveModeAction: LuLu.Pref.passiveAllow,
+        LuLu.Pref.passiveModeRules: LuLu.Pref.passiveRulesNo,
+    ]
+
+    static var state: State? {
+        if let raw = defaults.string(forKey: stateKey) { return State(rawValue: raw) ?? .engaged }
+        // 2.3.4 și mai vechi țineau doar copia salvată.
+        return defaults.dictionary(forKey: savedKey) != nil ? .engaged : nil
+    }
+
+    static var isEngaged: Bool { state != nil }
 
     /// Așteaptă conexiunea cu extensia veche (max. `timeout`), apoi aplică garda.
+    @discardableResult
     static func engage(timeout: TimeInterval = 3) async -> Bool {
-        let bridge = DaemonBridge.shared
         let deadline = Date().addingTimeInterval(timeout)
-        while !bridge.isConnected && Date() < deadline {
-            try? await Task.sleep(nanoseconds: 200_000_000)
+        while !engine.isConnected && Date() < deadline {
+            try? await Task.sleep(nanoseconds: connectPollInterval)
         }
-        guard bridge.isConnected, let current = await bridge.preferences() else {
+        guard engine.isConnected, let current = await engine.preferences() else {
             log.warning("Garda de actualizare nu s-a putut aplica: extensia veche nu răspunde")
             return false
         }
-        if !isEngaged {
-            let previous: [String: Any] = [
-                LuLu.Pref.passiveMode: current[LuLu.Pref.passiveMode] as? Bool ?? false,
-                LuLu.Pref.passiveModeAction: current[LuLu.Pref.passiveModeAction] as? Int ?? LuLu.Pref.passiveAllow,
-                LuLu.Pref.passiveModeRules: current[LuLu.Pref.passiveModeRules] as? Int ?? LuLu.Pref.passiveRulesNo,
-            ]
-            UserDefaults.standard.set(previous, forKey: savedKey)
+        generation += 1
+        if defaults.dictionary(forKey: savedKey) == nil {
+            let snapshot = passiveTriple(current)
+            if isEngaged || isGuard(snapshot) {
+                log.warning("Motorul e deja în starea gardei, fără copie salvată — la ridicare revine la modul normal")
+                defaults.set(normalPrefs, forKey: savedKey)
+            } else {
+                defaults.set(snapshot, forKey: savedKey)
+            }
         }
-        bridge.updatePreferences([
-            LuLu.Pref.passiveMode: true,
-            LuLu.Pref.passiveModeAction: LuLu.Pref.passiveBlock,
-            LuLu.Pref.passiveModeRules: LuLu.Pref.passiveRulesNo,
-        ])
+        defaults.set(State.engaged.rawValue, forKey: stateKey)
+        guard let reply = await engine.applyPreferences(guardPrefs), isGuard(passiveTriple(reply)) else {
+            log.warning("Garda de actualizare netrimisă sau neconfirmată de motor")
+            return false
+        }
         log.info("Garda de actualizare activă: conexiunile necunoscute sunt blocate până la reconectare")
         return true
     }
 
-    /// La conectarea cu extensia CURENTĂ (nu cu cea veche, în timpul înlocuirii).
-    static func releaseIfSafe() {
-        guard SystemExtensionInstaller.shared.phase == .idle else { return }
-        release()
+    /// La fiecare conectare cu motorul. Cu o actualizare în curs, garda rămâne
+    /// (motorul e încă cel vechi) — dacă ridicarea n-a fost deja cerută.
+    static func releaseIfSafe() async {
+        if let state {
+            if state == .engaged, await updateInProgress() {
+                log.info("Garda rămâne: actualizarea extensiei nu s-a încheiat")
+                return
+            }
+            await release()
+            return
+        }
+        guard !(await updateInProgress()) else { return }
+        await healStuckGuard()
     }
 
     /// Și când înlocuirea e amânată: aplicația rămâne pe extensia veche.
-    static func release() {
-        guard let previous = UserDefaults.standard.dictionary(forKey: savedKey) else { return }
-        DaemonBridge.shared.updatePreferences(previous)
-        UserDefaults.standard.removeObject(forKey: savedKey)
-        log.info("Garda de actualizare ridicată: preferințele anterioare au fost refăcute")
+    /// `true` = motorul a confirmat preferințele refăcute.
+    @discardableResult
+    static func release() async -> Bool {
+        guard isEngaged else { return true }
+        defaults.set(State.releasing.rawValue, forKey: stateKey)
+        let started = generation
+        let saved = defaults.dictionary(forKey: savedKey).map(passiveTriple) ?? normalPrefs
+        // O copie „otrăvită” de 2.3.4 (chiar starea gardei) nu se reface.
+        let target = isGuard(saved) ? normalPrefs : saved
+        guard let reply = await engine.applyPreferences(target), same(passiveTriple(reply), target) else {
+            log.warning("Garda de actualizare NU a fost ridicată: motorul nu a confirmat preferințele — reîncerc la următoarea conectare")
+            return false
+        }
+        guard generation == started else {
+            log.info("Ridicarea gărzii depășită: o gardă nouă a fost aplicată între timp")
+            return false
+        }
+        defaults.removeObject(forKey: savedKey)
+        defaults.removeObject(forKey: stateKey)
+        log.info("Garda de actualizare ridicată: preferințele anterioare au fost refăcute și confirmate de motor")
+        return true
+    }
+
+    /// Nicio gardă în evidență, nicio actualizare în curs, dar motorul e în
+    /// starea gardei: rămășiță a bug-ului din 2.3.4 (sau a unei căderi).
+    /// Aplicația nu are control pentru modul pasiv, deci utilizatorul n-ar
+    /// avea cum ieși singur.
+    private static func healStuckGuard() async {
+        guard let current = await engine.preferences(), isGuard(passiveTriple(current)) else { return }
+        log.warning("Motorul era blocat în starea gărzii de actualizare fără nicio actualizare în curs — revin la modul normal")
+        if let reply = await engine.applyPreferences(normalPrefs), same(passiveTriple(reply), normalPrefs) {
+            log.info("Modul normal refăcut și confirmat de motor")
+        } else {
+            log.warning("Modul normal netrimis sau neconfirmat — reîncerc la următoarea conectare")
+        }
+    }
+
+    // MARK: - Tripletul modului pasiv
+
+    static func passiveTriple(_ prefs: [String: Any]) -> [String: Any] {
+        [
+            LuLu.Pref.passiveMode: prefs[LuLu.Pref.passiveMode] as? Bool ?? false,
+            LuLu.Pref.passiveModeAction: prefs[LuLu.Pref.passiveModeAction] as? Int ?? LuLu.Pref.passiveAllow,
+            LuLu.Pref.passiveModeRules: prefs[LuLu.Pref.passiveModeRules] as? Int ?? LuLu.Pref.passiveRulesNo,
+        ]
+    }
+
+    static func isGuard(_ triple: [String: Any]) -> Bool { same(triple, guardPrefs) }
+
+    private static func same(_ a: [String: Any], _ b: [String: Any]) -> Bool {
+        let x = passiveTriple(a), y = passiveTriple(b)
+        return x[LuLu.Pref.passiveMode] as? Bool == y[LuLu.Pref.passiveMode] as? Bool
+            && x[LuLu.Pref.passiveModeAction] as? Int == y[LuLu.Pref.passiveModeAction] as? Int
+            && x[LuLu.Pref.passiveModeRules] as? Int == y[LuLu.Pref.passiveModeRules] as? Int
     }
 }

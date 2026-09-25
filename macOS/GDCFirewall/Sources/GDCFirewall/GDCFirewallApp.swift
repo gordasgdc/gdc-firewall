@@ -39,7 +39,6 @@ private struct MenuBarContent: View {
     private var statusText: String {
         switch sysex.phase {
         case .replacing: return L("Se actualizează motorul de filtrare…")
-        case .deferred: return L("Actualizarea motorului e amânată")
         case .needsReboot: return L("Repornește Mac-ul pentru a finaliza actualizarea")
         case .idle: break
         }
@@ -60,9 +59,6 @@ private struct MenuBarContent: View {
         Text(statusText)
         if sysex.state == .needsApproval {
             Button(L("Deschide Setări de sistem…")) { sysex.openApprovalSettings() }
-        }
-        if sysex.phase == .deferred {
-            Button(L("Finalizează actualizarea motorului…")) { sysex.finishEngineUpdate() }
         }
 
         if sysex.state == .active || sysex.state == .filterOff {

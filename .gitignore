@@ -15,3 +15,4 @@ codesigning/*.p8
 
 # Stare de lucru internă (Regula 50), doar local
 PROJECT_STATE.md
+HANDOFF.md

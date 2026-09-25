@@ -2,7 +2,7 @@
   "$schema": "https://gdc.internal/schemas/plugin-manifest-v1.json",
   "name": "GDC Firewall",
   "publisher": "GDC",
-  "version": "2.3.3",
+  "version": "2.3.5",
   "description": "Firewall pentru macOS în limba română, pentru utilizatori non-tehnici. Alerte cu semafor, aprobare inteligentă și filtrare de domenii.",
   "category": "security",
   "license": "GPL-3.0",

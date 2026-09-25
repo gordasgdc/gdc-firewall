@@ -222,9 +222,32 @@ Regulile generale sunt în `~/Developer/CLAUDE.md` (40 — App Translocation,
      + mesajul de repornire, în loc de amânare;
    - dezinstalatorul GDC (calea prin aplicație) și curățarea Little Snitch /
      LuLu (calea prin Finder, care declanșează dezinstalarea extensiilor).
+   **[ÎNVECHIT 2026-09-25]** Presupunerea „Mac-ul de dezvoltare are SIP
+   dezactivat” nu mai e valabilă: SIP e ACTIVAT permanent pe Mac-ul lui Cristi,
+   ca la clienți. Rezultat verificat la primul test cu SIP activ (2.3.4 → 2.3.5):
+   `launchctl bootout` pe jobul extensiei → „Operation not permitted”, deci
+   înlocuirea secvențială NU funcționează la niciun client. Remedierea
+   prevăzută mai sus e aplicată în 2.3.5 (punctul 5).
+5. **Totul se construiește, se testează și se actualizează cu SIP ACTIV
+   (2026-09-25).** Fără `launchctl bootout`/`kickstart` pe joburile extensiei,
+   fără `systemextensionsctl` ca pas normal. Actualizarea extensiei = DOAR
+   `OSSystemExtensionRequest.activationRequest` + `.replace` (ca LuLu
+   upstream); garda de actualizare pusă înainte; dacă extensia nouă pornește
+   fără serviciul Mach (cursa), mesaj de repornire. Dezactivarea
+   (`--uninstall-extension`) cere o nouă aprobare la reactivare — nu e cale de
+   actualizare. Un test „trecut” fără `csrutil status` = enabled nu
+   dovedește nimic.
 
 ### Jurnal
 
+- **2026-09-25 — v2.3.5 (nepublicată).** UpdateGuard: `release()` ștergea copia salvată și cu motorul neconectat, iar
+  `engage()` următor salva starea gărzii ca „anterioară” → blocare permanentă a oricărui binar fără regulă (-1005).
+  Acum ridicarea se confirmă din răspunsul `updatePreferences`, starea gărzii nu se salvează/reface niciodată,
+  autoreparare la conectare; garda se ridică doar când rulează exclusiv extensia din pachet. Primul test cu SIP
+  activ: `bootout` interzis → înlocuirea secvențială scoasă, înlocuire doar prin API-ul oficial + repornire la
+  cursă. Teste: `Tests/GDCFirewallTests`; integrare: `scripts/verify-update-guard.sh`. Capcane găsite:
+  `translations.py` scria într-o cale fixă (checkout-ul principal) — acum relativ la repo; testele scriau în
+  logul real — acum fișier temporar sub XCTest.
 - **2026-09-20 — v2.3.4 verificată LIVE** (`verify-download.sh 2.3.4`: 11 ✓, 0 ✗; DMG + `GDCFirewall-macOS.dmg` stabil
   publicate). Regula globală 45 (DMG/PKG notarizat, fără `.command`/zip) e în `~/Developer/CLAUDE.md` și
   `~/Developer/ARCHITECTURE_PATTERNS.md` (K).

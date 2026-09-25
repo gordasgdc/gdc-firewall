@@ -10,6 +10,11 @@ let package = Package(
             name: "GDCFirewall",
             path: "Sources/GDCFirewall",
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "GDCFirewallTests",
+            dependencies: ["GDCFirewall"],
+            path: "Tests/GDCFirewallTests"
         )
     ]
 )

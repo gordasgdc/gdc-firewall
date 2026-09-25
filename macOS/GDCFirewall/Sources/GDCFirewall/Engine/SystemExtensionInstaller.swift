@@ -36,8 +36,7 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
     /// filtrul). Vezi EngineService pentru cursa pe care o rezolvă.
     enum Phase: Equatable {
         case idle
-        case replacing          // jobul vechi e scos, extensia nouă se activează
-        case deferred           // înlocuirea amânată de utilizator: rulează extensia veche
+        case replacing          // extensia nouă înlocuiește versiunea care rulează
         case needsReboot        // extensia nouă fără serviciul Mach: doar repornirea repară
     }
 
@@ -75,23 +74,15 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
         (Bundle.main.bundleIdentifier ?? "dev.gordas.GDCFirewall") + ".extension"
     }
 
-    /// Înlocuire SECVENȚIALĂ (cauza: EngineService). Dacă rulează altă versiune
-    /// a extensiei, jobul ei se scoate ÎNAINTE de activare; altfel macOS o
-    /// înregistrează pe cea nouă fără serviciul Mach. Scoaterea cere o singură
-    /// dată parola de administrator — actualizarea automată o face ea, ca root,
-    /// înainte de relansare. Dacă utilizatorul refuză, aplicația folosește
-    /// extensia veche (același motor, același protocol XPC) și propune din nou
-    /// din meniu sau la următoarea pornire.
+    /// Înlocuire DOAR prin API-ul oficial (cererea de activare + `.replace`),
+    /// ca în LuLu upstream — funcționează cu SIP activ. Scoaterea jobului vechi
+    /// cu `launchctl bootout` (2.3.2–2.3.4) e interzisă de SIP („Operation not
+    /// permitted”, verificat 2026-09-25), deci nu mai există. Dacă macOS repetă
+    /// cursa (extensia nouă fără serviciul Mach, vezi EngineService), garda
+    /// ține necunoscutele blocate și aplicația cere o repornire.
     func activate() {
         log.info("Cer activarea extensiei \(extensionBundleID)")
         state = .requesting
-        Task { @MainActor in await self.activateSequentially() }
-    }
-
-    /// „Finalizează actualizarea motorului…”, după o amânare.
-    @MainActor
-    func finishEngineUpdate() {
-        guard phase == .deferred else { return }
         Task { @MainActor in await self.activateSequentially() }
     }
 
@@ -102,16 +93,9 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
         if let bundled, !stale.isEmpty {
             log.info("Actualizare extensie: \(stale.joined(separator: ", ")) → \(bundled)")
             phase = .replacing
-            _ = await UpdateGuard.engage()
-            do {
-                try await Task.detached { try EngineService.removeJobsWithAdmin(stale) }.value
-            } catch {
-                log.warning("Înlocuirea extensiei amânată: \(error.localizedDescription)")
-                phase = .deferred
-                UpdateGuard.release()
-                enableFilter()
-                return
-            }
+            // Extensia nouă pornește cu preferințele de pe disc: cu garda pusă,
+            // blochează necunoscutele până se conectează aplicația.
+            await UpdateGuard.engage()
         }
         submitActivation()
     }
@@ -193,14 +177,13 @@ final class SystemExtensionInstaller: NSObject, ObservableObject, OSSystemExtens
     // MARK: - Sănătatea motorului
 
     /// După activare (și după reconectări eșuate): jobul extensiei din pachet
-    /// trebuie să dețină serviciul Mach. Cu înlocuirea secvențială asta e
-    /// regula; dacă totuși nu (o înlocuire făcută de o versiune veche a
-    /// aplicației), doar repornirea Mac-ului înregistrează extensia din nou —
+    /// trebuie să dețină serviciul Mach. Dacă nu (cursa de înlocuire),
+    /// doar repornirea Mac-ului înregistrează extensia din nou —
     /// `kickstart` și `bootout` pe jobul nou NU repară (verificat, vezi
     /// EngineService). Nicio parolă, niciun ciclu: un singur mesaj.
     @MainActor
     private func ensureEngine() async {
-        guard !ensuring, phase != .deferred, let label = EngineService.bundledLabel else { return }
+        guard !ensuring, let label = EngineService.bundledLabel else { return }
         ensuring = true
         defer { ensuring = false }
         let wasReplacing = phase == .replacing

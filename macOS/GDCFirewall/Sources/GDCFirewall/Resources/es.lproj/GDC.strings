@@ -19,8 +19,6 @@
 "Actualizare" = "Actualización";
 "Actualizare critică de securitate" = "Actualización de seguridad crítica";
 "Actualizarea a eșuat" = "La actualización falló";
-"Actualizarea motorului a fost amânată." = "La actualización del motor se ha aplazado.";
-"Actualizarea motorului e amânată" = "Actualización del motor aplazada";
 "Actualizat: %@" = "Actualizada: %@";
 "Actualizează acum" = "Actualizar ahora";
 "Actualizări macOS" = "Actualizaciones de macOS";
@@ -152,7 +150,6 @@
 "Filtrare & AdBlock" = "Filtrado y AdBlock";
 "Filtrare activă" = "Filtrado activo";
 "Filtrare oprită" = "Filtrado desactivado";
-"Finalizează actualizarea motorului…" = "Terminar la actualización del motor…";
 "Fără verificare de identitate" = "Sin comprobación de identidad";
 "GDC Firewall trebuie să ruleze din folderul Aplicații: macOS pornește filtrul de rețea doar de acolo. Aplicația se mută și repornește singură." = "GDC Firewall debe ejecutarse desde la carpeta Aplicaciones: macOS solo inicia el filtro de red desde allí. La app se moverá y se reiniciará sola.";
 "Gata" = "Listo";
@@ -221,7 +218,6 @@
 "Nume" = "Nombre";
 "O listă publică în format hosts (0.0.0.0 domeniu) sau cu un domeniu pe linie. Se îmbină cu StevenBlack la fiecare actualizare." = "Una lista pública en formato hosts (0.0.0.0 dominio) o con un dominio por línea. Se combina con StevenBlack en cada actualización.";
 "O nouă actualizare critică de securitate pentru motorul de filtrare este disponibilă. Rulați actualizarea pentru a menține protecția." = "Una actualización de seguridad crítica para el motor de filtrado está disponible. Ejecute la actualización para mantener la protección.";
-"Oprirea versiunii vechi a motorului a eșuat: %@" = "No se pudo detener la versión anterior del motor: %@";
 "Oprit — nu se blochează niciun domeniu din liste." = "Desactivada: no se bloquea ningún dominio de las listas.";
 "Orice destinație" = "Cualquier destino";
 "Partajare (AirDrop, Ecran)" = "Compartir (AirDrop, pantalla)";

@@ -97,7 +97,7 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
                     // Motorul poate fi proaspăt (extensie nouă, repornire):
                     // îi retrimitem blocklist-ul la fiecare conectare.
                     BlocklistStore.shared.applyToEngine()
-                    Task { @MainActor in UpdateGuard.releaseIfSafe() }
+                    Task { @MainActor in await UpdateGuard.releaseIfSafe() }
                 }
                 self?.isConnected = ready
                 if ready { self?.reloadRules() }
@@ -247,6 +247,31 @@ final class DaemonBridge: NSObject, ObservableObject, XPCUserProtocol {
         proxy.updatePreferences(preferences) { [weak self] _ in
             self?.log.info("Preferințe aplicate în motor: \(preferences.keys.sorted().joined(separator: ", "))")
         }
+    }
+
+    /// Ca mai sus, dar așteaptă răspunsul motorului: preferințele lui DUPĂ
+    /// aplicare, sau `nil` (neconectat / fără răspuns în 3 s). Garda de
+    /// actualizare se bazează pe confirmarea asta, nu pe simpla trimitere.
+    func applyPreferences(_ preferences: [String: Any]) async -> [String: Any]? {
+        guard let proxy else {
+            log.warning("Preferințe netrimise (motor neconectat): \(preferences.keys.sorted())")
+            return nil
+        }
+        let result: [String: Any]? = await withCheckedContinuation { continuation in
+            let once = ResumeOnce(continuation)
+            proxy.updatePreferences(preferences) { reply in
+                var prefs: [String: Any] = [:]
+                for (key, value) in reply { if let key = key as? String { prefs[key] = value } }
+                once.resume(prefs)
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + 3) { once.resume(nil) }
+        }
+        if result == nil {
+            log.warning("Motorul nu a confirmat preferințele în 3 s: \(preferences.keys.sorted())")
+        } else {
+            log.info("Preferințe aplicate și confirmate de motor: \(preferences.keys.sorted().joined(separator: ", "))")
+        }
+        return result
     }
 
     /// Import: câte un `addRule` per regulă, calea pe care o folosesc și
@@ -404,3 +429,5 @@ private final class ResumeOnce: @unchecked Sendable {
         pending?.resume(returning: value)
     }
 }
+
+extension DaemonBridge: UpdateGuardEngine {}

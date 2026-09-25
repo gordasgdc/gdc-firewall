@@ -69,7 +69,7 @@ enum SelfUpdater {
             NSApp.terminate(nil)
         } catch {
             log.error("Actualizarea la \(version) a eșuat: \(error.localizedDescription)")
-            UpdateGuard.release()
+            await UpdateGuard.release()
             progress.close()
             presentFailure(error, fallbackURL: releasesPageURLForFallback)
         }
@@ -186,13 +186,8 @@ enum SelfUpdater {
             echo "Instalarea a esuat (cod $status)."
             exit $status
         fi
-        # Inlocuire secventiala a extensiei (vezi EngineService.swift): jobul vechi
-        # se scoate INAINTE ca aplicatia noua sa-si activeze extensia; altfel macOS
-        # o inregistreaza pe cea noua fara serviciul Mach. Suntem deja root.
-        for L in $(launchctl print system | grep -oE '\(EngineService.labelPrefix.replacingOccurrences(of: ".", with: "\\."))[0-9.]+' | sort -u); do
-            echo "Opresc extensia veche: $L"
-            launchctl bootout "system/$L"
-        done
+        # Extensia NU se opreste de aici: cu SIP activ `launchctl bootout` e
+        # interzis. Aplicatia noua o inlocuieste prin API-ul oficial.
         echo "Pornesc aplicatia actualizata..."
         open -b "\(Bundle.main.bundleIdentifier ?? "dev.gordas.GDCFirewall")"
         rm -rf "\(tempDir.path)"

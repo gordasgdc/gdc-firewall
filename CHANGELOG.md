@@ -2,6 +2,13 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.3.5 (2026-09-25) — Protecția de actualizare nu mai rămâne blocată
+
+### Fixed
+- După o actualizare a filtrului, unele aplicații fără regulă puteau rămâne blocate definitiv, fără nicio alertă. Protecția temporară din timpul actualizării se ridică acum doar după ce filtrul confirmă revenirea la modul normal; dacă filtrul nu răspunde, ridicarea se reia la următoarea conectare.
+- Instalările afectate se repară singure la pornire: dacă nicio actualizare nu e în curs, filtrul revine la modul normal.
+- Protecția temporară rămâne activă până rulează efectiv versiunea nouă a filtrului, chiar dacă aplicația nouă pornește înaintea lui.
+
 ## v2.3.4 (2026-09-20) — Instalare din DMG notarizat, ghid de aprobare a extensiei
 
 ### Changed
