@@ -231,5 +231,6 @@ struct RuleInspector: View {
 
 extension RuleAction {
     /// Culorile de stare, definite o singură dată (Regula 37).
-    var tint: Color { self == .allow ? .green : .red }
+    /// Colorează și text („Permis”/„Blocat”), deci varianta cu contrast verificat.
+    var tint: Color { (self == .allow ? StatusTone.success : .error).foreground }
 }

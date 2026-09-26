@@ -132,6 +132,7 @@ struct RulesManagerView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 20, height: 20)
                     .opacity(rule.isDisabled ? 0.4 : 1)
+                    .accessibilityHidden(true)
             }
             .width(26)
             TableColumn(L("Proces"), value: \.friendlyName) { rule in
@@ -143,6 +144,8 @@ struct RulesManagerView: View {
                         .foregroundStyle(.secondary)
                 }
                 .help(rule.enginePath)
+                .accessibilityElement(children: .combine)
+                .accessibilityValue(RuleAccessibility.ruleState(isDisabled: rule.isDisabled))
             }
             .width(min: 160, ideal: 240)
             TableColumn(L("Stare"), value: \.stateSortKey) { rule in
@@ -403,6 +406,7 @@ private struct RuleSidebar: View {
                 Spacer()
                 Text("\(n)").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .combine)
             .tag(item)
         }
     }
@@ -420,6 +424,8 @@ private struct RuleSidebar: View {
                 .labelsHidden()
                 .disabled(rules.isEmpty)
                 .help(L("Activează sau dezactivează tot grupul"))
+                .accessibilityLabel(group.title)
+                .accessibilityValue(RuleAccessibility.groupState(enabled: enabled))
         }
         .tag(SidebarItem.group(group))
         .contextMenu {
@@ -436,6 +442,13 @@ private struct RuleSidebar: View {
 }
 
 // MARK: - Piese
+
+/// Valorile citite de VoiceOver pentru reguli și grupuri: mereu o stare
+/// explicită, niciodată o valoare goală pentru starea activă.
+enum RuleAccessibility {
+    static func ruleState(isDisabled: Bool) -> String { isDisabled ? L("Dezactivată") : L("Activă") }
+    static func groupState(enabled: Bool) -> String { enabled ? L("Activ") : L("Dezactivat") }
+}
 
 private struct RuleStateBadge: View {
     let rule: FirewallRule

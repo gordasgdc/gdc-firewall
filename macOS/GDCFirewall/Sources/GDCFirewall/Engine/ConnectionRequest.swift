@@ -55,9 +55,7 @@ struct ConnectionRequest: Identifiable, Hashable {
     var processName: String { (path as NSString).lastPathComponent }
 
     var risk: RiskLevel {
-        if isAppleSigned { return .safe }
-        if isNotarized { return .known }
-        return .unknown
+        RiskLevel.classify(isAppleSigned: isAppleSigned, isNotarized: isNotarized)
     }
 
     var friendlyName: String {
@@ -79,7 +77,8 @@ struct ConnectionRequest: Identifiable, Hashable {
         case 22: return L("terminal la distanță (SSH)")
         case 25, 465, 587: return L("trimitere e-mail")
         case 993, 995: return L("citire e-mail")
-        default: return L("port %d", remotePort)
+        // Ca text, nu `%d`: formatarea locală ar scrie „8.080” în română.
+        default: return L("port %@", String(remotePort))
         }
     }
 }

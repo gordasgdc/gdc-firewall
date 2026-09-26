@@ -2,23 +2,29 @@ import SwiftUI
 
 /// Blocklist-ul StevenBlack pe niveluri + listele personalizate. Aceeași
 /// vedere apare în fereastra Reguli (bara laterală → Blocklist-uri) și în
-/// Setări → Filtrare.
-struct BlocklistView: View {
+/// Setări → Protecție (acolo, sub secțiunile primite prin `leading`).
+struct BlocklistView<Leading: View>: View {
     @ObservedObject private var store = BlocklistStore.shared
     @State private var probe = ""
     @State private var newException = ""
     @State private var addingList = false
+    private let leading: Leading
+
+    init(@ViewBuilder leading: () -> Leading) {
+        self.leading = leading()
+    }
 
     var body: some View {
         Form {
+            leading
             Section {
                 Toggle(isOn: Binding(get: { store.isEnabled }, set: { store.setEnabled($0) })) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(L("Blocklist StevenBlack")).font(.headline)
+                        Text(L("Blocklist StevenBlack")).gdcFont(.headline)
                         Text(store.isEnabled
                              ? L("%@ domenii blocate", store.domainCount.formatted())
                              : L("Oprit — nu se blochează niciun domeniu din liste."))
-                            .font(.caption)
+                            .gdcFont(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -29,17 +35,17 @@ struct BlocklistView: View {
                     if store.isUpdating { ProgressView().controlSize(.small) }
                     Spacer()
                     Text(store.lastUpdated.map { L("Actualizat: %@", Self.relative($0)) } ?? L("Neactualizat încă"))
-                        .font(.caption)
+                        .gdcFont(.caption)
                         .foregroundStyle(.secondary)
                 }
                 if let error = store.lastError {
                     Label(error, systemImage: "exclamationmark.triangle.fill")
                         .symbolRenderingMode(.multicolor)
-                        .font(.caption)
+                        .gdcFont(.caption)
                 }
             } footer: {
                 Text(L("Blocarea o face motorul de filtrare, pentru fiecare conexiune a fiecărei aplicații — inclusiv a celor deja permise."))
-                    .font(.caption)
+                    .gdcFont(.caption)
             }
 
             Section(L("Niveluri")) {
@@ -71,7 +77,7 @@ struct BlocklistView: View {
                         Toggle(isOn: Binding(get: { list.isEnabled }, set: { store.setCustomList(list.id, enabled: $0) })) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(list.name)
-                                Text(list.url).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                                Text(list.url).gdcFont(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                             }
                         }
                         Button(role: .destructive) { store.removeCustomList(list.id) } label: { Image(systemName: "trash") }
@@ -102,7 +108,7 @@ struct BlocklistView: View {
             Section(L("Excepții (permise de tine)")) {
                 ForEach(Array(store.allowList).sorted(), id: \.self) { host in
                     HStack {
-                        Text(host).font(.caption.monospaced())
+                        Text(host).gdcFont(.mono)
                         Spacer()
                         Button(L("Elimină")) { store.removeFromAllowList(host) }
                             .buttonStyle(.link)
@@ -127,7 +133,7 @@ struct BlocklistView: View {
     private func tierLabel(_ title: String, _ summary: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-            Text(summary).font(.caption).foregroundStyle(.secondary)
+            Text(summary).gdcFont(.caption).foregroundStyle(.secondary)
         }
     }
 
@@ -151,9 +157,9 @@ struct AddBlocklistSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(L("Adaugă blocklist")).font(.headline)
+            Text(L("Adaugă blocklist")).gdcFont(.headline)
             Text(L("O listă publică în format hosts (0.0.0.0 domeniu) sau cu un domeniu pe linie. Se îmbină cu StevenBlack la fiecare actualizare."))
-                .font(.caption)
+                .gdcFont(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField(L("Nume"), text: $name).textFieldStyle(.roundedBorder)
@@ -174,4 +180,8 @@ struct AddBlocklistSheet: View {
         .padding(20)
         .frame(minWidth: 380, idealWidth: 460, maxWidth: .infinity)
     }
+}
+
+extension BlocklistView where Leading == EmptyView {
+    init() { self.init { EmptyView() } }
 }

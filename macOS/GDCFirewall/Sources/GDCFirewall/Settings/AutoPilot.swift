@@ -42,7 +42,7 @@ final class AutoPilot: ObservableObject {
     /// Dublă condiție, deliberat: bundle ID `com.apple.*` NU e suficient
     /// singur — oricine poate scrie asta în propriul Info.plist. Semnătura
     /// verificată de motor e cea care decide.
-    private func qualifies(_ request: ConnectionRequest) -> Bool {
+    func qualifies(_ request: ConnectionRequest) -> Bool {
         guard request.isAppleSigned else { return false }
         guard let bundleID = request.bundleID else {
             // Daemon de sistem fără bundle ID, dar semnat Apple și pornit

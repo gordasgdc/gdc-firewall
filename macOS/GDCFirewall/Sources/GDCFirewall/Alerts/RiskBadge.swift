@@ -27,13 +27,14 @@ struct RiskBadge: View {
         .onAppear {
             // Micro-animație doar pe roșu, doar dacă utilizatorul n-a cerut
             // mai puțină mișcare. Pe verde ar fi zgomot vizual gratuit.
-            guard risk == .unknown, !reduceMotion else { return }
+            guard risk == .unverified, !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) {
                 pulse = true
             }
         }
         .accessibilityElement()
-        .accessibilityLabel(L("Nivel de risc: %@", risk.title))
+        .accessibilityLabel(risk.identity)
+        .accessibilityValue(risk.assessment)
     }
 }
 
@@ -45,6 +46,6 @@ struct RiskDot: View {
         Circle()
             .fill(risk.tint)
             .frame(width: 8, height: 8)
-            .accessibilityLabel(risk.title)
+            .accessibilityLabel(risk.identity)
     }
 }

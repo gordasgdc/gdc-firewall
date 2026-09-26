@@ -31,7 +31,16 @@ struct DiagnosticLog {
 
     /// `defaults write dev.gordas.GDCFirewall GDCFirewall.verboseLog -bool true`
     /// trimite și mesajele de nivel debug în fișier (unified log le are oricum).
-    static var verbose: Bool { UserDefaults.standard.bool(forKey: "GDCFirewall.verboseLog") }
+    static var verbose: Bool { sessionVerbose || UserDefaults.standard.bool(forKey: "GDCFirewall.verboseLog") }
+
+    /// Jurnal detaliat pornit din Setări → Diagnostic: ținut doar în memorie,
+    /// deci se oprește singur la următoarea pornire.
+    static var sessionVerbose = false
+
+    /// Identificatorul acestei rulări — apare în prima linie a logului și în
+    /// manifestul pachetului de diagnostic, ca o problemă raportată să poată fi
+    /// găsită în jurnal.
+    static let sessionID: String = String(UUID().uuidString.prefix(8))
 
     let category: String
     private let logger: Logger
