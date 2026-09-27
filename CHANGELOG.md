@@ -2,6 +2,23 @@
 
 Formatul urmează versionarea semantică (Regula 14 din Standardul GDC).
 
+## v2.4.0 (2026-09-27) — Setări noi, explicații mai clare, pictogramă nouă
+
+### Added
+- Setările sunt organizate în cinci secțiuni: General, Protecție, Actualizări, Diagnostic și Avansat.
+- Mărimea textului poate fi aleasă din Setări (Standard, Mare, Foarte mare) pentru alerte și Setări.
+- Exportul unui pachet de diagnostic local, care nu se trimite automat. Numele contului, adresele de e-mail și valorile de tip parolă sunt eliminate.
+- Dezinstalarea completă din Setări → Avansat, cu explicarea a ce se elimină și ce rămâne.
+
+### Changed
+- Alertele spun ce s-a observat despre semnătura programului, separat de riscul estimat și de recomandare. Nu mai afișează un verdict „Sigur”.
+- Iconul din bara de meniu arată starea protecției prin formă: activă, aprobare necesară, reconectare, oprită, actualizare, repornire necesară sau eroare.
+- Pictogramă nouă a aplicației, cu același scut.
+- Etichete mai bune pentru VoiceOver și contrast mai bun pentru textele colorate.
+
+### Fixed
+- Numărul portului apare fără separator de mii (de exemplu 8080, nu 8.080).
+
 ## v2.3.5 (2026-09-25) — Protecția de actualizare nu mai rămâne blocată
 
 ### Fixed

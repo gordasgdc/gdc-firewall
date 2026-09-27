@@ -47,6 +47,13 @@ struct DiagnosticRedactor {
         for (regex, template) in Self.rules {
             result = regex.stringByReplacingMatches(in: result, range: NSRange(result.startIndex..., in: result), withTemplate: template)
         }
+        // Numele contului poate apărea și în afara unei căi /Users/… — de ex.
+        // încodat într-un nume de folder temporar („-Users-<cont>-Developer”).
+        // Se elimină oriunde apare (găsit la testul real al exportului, 2.4.0).
+        let account = (homePath as NSString).lastPathComponent
+        if account.count >= 3 {
+            result = result.replacingOccurrences(of: account, with: "<utilizator>", options: .caseInsensitive)
+        }
         return result
     }
 

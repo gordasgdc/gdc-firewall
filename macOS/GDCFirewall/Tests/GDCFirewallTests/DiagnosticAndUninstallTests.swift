@@ -4,6 +4,14 @@ import XCTest
 final class DiagnosticRedactorTests: XCTestCase {
     private let redactor = DiagnosticRedactor(homePath: "/Users/maria")
 
+    /// Caz real (export 2.4.0): numele contului încodat într-un folder temporar.
+    func testAccountNameRemovedOutsideUserPaths() {
+        let line = "Alertă: X.app [/tmp/claude-501/-Users-maria-Developer-gdc/X.app] · MARIA"
+        let out = redactor.redact(line)
+        XCTAssertFalse(out.lowercased().contains("maria"), out)
+        XCTAssertTrue(out.contains("-Users-<utilizator>-Developer-gdc"))
+    }
+
     func testHomeBecomesTildeAndOtherUsersLoseName() {
         let out = redactor.redact("/Users/maria/Library/Logs/x.log și /Users/ion/Desktop/a și /Users/Shared/b")
         XCTAssertEqual(out, "~/Library/Logs/x.log și /Users/<utilizator>/Desktop/a și /Users/Shared/b")
