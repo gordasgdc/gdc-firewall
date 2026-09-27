@@ -4,58 +4,53 @@
   PNG-urile din AppIcon.appiconset se generează din acest fișier cu
   scripts/make-appicon.sh; nu se editează manual.
 
-  Geometria e cea din antetul paginii gordas.dev/gdc-firewall (scut cu linie
-  de mijloc), ca pictograma și site-ul să arate același semn, nu două
-  variante apropiate. Paleta e amber/cupru pe placă închisă — standardul
-  vizual GDC.
+  Varianta „Metal + sticlă” (aleasă de proprietar, 2026-09-27): aceeași
+  siluetă de scut și linie de mijloc ca pictograma anterioară, cu ramă de
+  cupru lustruit și miez de sticlă amber. Lumina: o singură sursă, sus-stânga.
+  Master aprobat: ~/Developer/_design-studio/GDC-Firewall/approved/.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <!-- Placa: închisă, cu o trecere abia perceptibilă de sus în jos. -->
     <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1B1F25"/>
-      <stop offset="1" stop-color="#0A0C0F"/>
+      <stop offset="0" stop-color="#1B1F25"/><stop offset="1" stop-color="#0A0C0F"/>
     </linearGradient>
-
-    <!-- Scutul: amber spre cupru, pe diagonală. -->
-    <linearGradient id="mark" x1="0.15" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#FFC266"/>
-      <stop offset="0.55" stop-color="#FFB347"/>
-      <stop offset="1" stop-color="#C87F3E"/>
+    <linearGradient id="plateGloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.08"/><stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
-
-    <!-- Sticla: un singur reflex difuz sus, nu un luciu de plastic. -->
+    <radialGradient id="contact" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.55"/><stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="plateClip"><rect x="100" y="100" width="824" height="824" rx="185" ry="185"/></clipPath>
+    <clipPath id="shieldClip"><path transform="translate(200 200) scale(26)" d="M12 2.5 4.5 5.8v6c0 4.6 3.1 8.5 7.5 9.7 4.4-1.2 7.5-5.1 7.5-9.7v-6z"/></clipPath>
+    <clipPath id="rightHalf"><rect x="512" y="0" width="512" height="1024"/></clipPath>
+    <linearGradient id="metal" x1="0.12" y1="0.02" x2="0.88" y2="0.98">
+      <stop offset="0" stop-color="#FFE3B0"/><stop offset="0.3" stop-color="#E7A15A"/>
+      <stop offset="0.6" stop-color="#9E5424"/><stop offset="0.8" stop-color="#C98246"/><stop offset="1" stop-color="#6A3413"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#FFCB7A"/><stop offset="0.5" stop-color="#F29A3A"/><stop offset="1" stop-color="#8F4716"/>
+    </linearGradient>
     <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.09"/>
-      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.02"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.58"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.03"/>
     </linearGradient>
-
-    <clipPath id="plateClip">
-      <rect x="100" y="100" width="824" height="824" rx="185" ry="185"/>
-    </clipPath>
+    <clipPath id="innerClip"><path transform="translate(200 200) scale(26) translate(12 12) scale(0.76) translate(-12 -12)" d="M12 2.5 4.5 5.8v6c0 4.6 3.1 8.5 7.5 9.7 4.4-1.2 7.5-5.1 7.5-9.7v-6z"/></clipPath>
   </defs>
-
-  <!-- Placa, la raportul de colț folosit de macOS (824 / 185). -->
   <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#plate)"/>
-  <g clip-path="url(#plateClip)">
-    <rect x="100" y="100" width="824" height="480" fill="url(#gloss)"/>
+  <rect x="100" y="100" width="824" height="460" clip-path="url(#plateClip)" fill="url(#plateGloss)"/>
+  <rect x="100.5" y="100.5" width="823" height="823" rx="184.5" ry="184.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.10"/>
+  <!-- umbră de contact (volum, nu glow): elipsă sub vârful scutului -->
+  <ellipse cx="512" cy="786" rx="230" ry="34" fill="url(#contact)"/>
+  <g transform="translate(200 200) scale(26)">
+    <path d="M12 2.5 4.5 5.8v6c0 4.6 3.1 8.5 7.5 9.7 4.4-1.2 7.5-5.1 7.5-9.7v-6z" fill="url(#metal)"/>
+    <g transform="translate(12 12) scale(0.76) translate(-12 -12)">
+      <path d="M12 2.5 4.5 5.8v6c0 4.6 3.1 8.5 7.5 9.7 4.4-1.2 7.5-5.1 7.5-9.7v-6z" fill="#2A1406"/>
+      <path d="M12 2.5 4.5 5.8v6c0 4.6 3.1 8.5 7.5 9.7 4.4-1.2 7.5-5.1 7.5-9.7v-6z" fill="url(#glass)" transform="translate(0 0.25)"/>
+    </g>
   </g>
-  <!-- Muchie de un fir, ca placa să nu se piardă pe fundal închis. -->
-  <rect x="100.5" y="100.5" width="823" height="823" rx="184.5" ry="184.5"
-        fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="1"/>
-
-  <!--
-    Scutul. Glifa e desenată pe o grilă de 24 de unități și scalată o
-    singură dată (×26), ca toate grosimile de linie să rămână în raport
-    indiferent de dimensiunea la care se exportă.
-  -->
-  <g transform="translate(200 200) scale(26)"
-     fill="none" stroke="url(#mark)"
-     stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 2.5 4.5 5.8v6c0 4.6 3.1 8.5 7.5 9.7 4.4-1.2 7.5-5.1 7.5-9.7v-6z"
-          fill="#FFB347" fill-opacity="0.07" stroke-width="1.9"/>
-    <!-- Linia de mijloc: jumătatea filtrată, jumătatea lăsată să treacă. -->
-    <path d="M12 2.5v19" stroke-width="1.15" stroke-opacity="0.42"/>
+  <ellipse cx="505" cy="360" rx="160" ry="118" clip-path="url(#innerClip)" fill="url(#gloss)"/>
+  <g transform="translate(200 200) scale(26)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2.5 4.5 5.8v6c0 4.6 3.1 8.5 7.5 9.7 4.4-1.2 7.5-5.1 7.5-9.7v-6z" stroke="#FFF1D2" stroke-opacity="0.55" stroke-width="0.2"/>
+    <path d="M12 4.6v15.2" stroke="#C98246" stroke-width="0.7"/>
+    <path d="M11.8 4.8v14.8" stroke="#FFF1D2" stroke-opacity="0.5" stroke-width="0.16"/>
   </g>
 </svg>
