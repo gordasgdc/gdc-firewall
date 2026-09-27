@@ -166,6 +166,8 @@ struct RulesManagerView: View {
             }
             .width(min: 90, ideal: 140)
         }
+        // Fără etichetă, VoiceOver anunța doar „tabel” la focalizare.
+        .accessibilityLabel(L("Reguli"))
         .contextMenu(forSelectionType: FirewallRule.ID.self) { ids in
             contextMenu(for: rules(with: ids))
         } primaryAction: { ids in

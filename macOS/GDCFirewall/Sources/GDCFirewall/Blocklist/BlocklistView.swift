@@ -83,6 +83,8 @@ struct BlocklistView<Leading: View>: View {
                         Button(role: .destructive) { store.removeCustomList(list.id) } label: { Image(systemName: "trash") }
                             .buttonStyle(.borderless)
                             .help(L("Elimină"))
+                            // Butonul are doar pictogramă: VoiceOver primește acțiunea și lista.
+                            .accessibilityLabel(L("Elimină lista %@", list.name))
                     }
                 }
                 Button(L("Adaugă blocklist…")) { addingList = true }
@@ -91,6 +93,7 @@ struct BlocklistView<Leading: View>: View {
 
             Section(L("Verifică un domeniu")) {
                 TextField(L("ex. doubleclick.net"), text: $probe)
+                    .accessibilityLabel(L("Verifică un domeniu"))
                     .textFieldStyle(.roundedBorder)
                 if !probe.trimmingCharacters(in: .whitespaces).isEmpty {
                     let blocked = store.isBlocked(probe.trimmingCharacters(in: .whitespaces))
@@ -116,6 +119,7 @@ struct BlocklistView<Leading: View>: View {
                 }
                 HStack {
                     TextField(L("domeniu de permis"), text: $newException)
+                        .accessibilityLabel(L("Excepții (permise de tine)"))
                         .textFieldStyle(.roundedBorder)
                     Button(L("Adaugă")) {
                         store.allow(newException.trimmingCharacters(in: .whitespaces))
@@ -163,7 +167,9 @@ struct AddBlocklistSheet: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField(L("Nume"), text: $name).textFieldStyle(.roundedBorder)
+                .accessibilityLabel(L("Nume"))
             TextField("https://…", text: $url).textFieldStyle(.roundedBorder)
+                .accessibilityLabel(L("Adresa listei (URL)"))
             HStack {
                 Spacer()
                 Button(L("Anulează"), role: .cancel) { dismiss() }

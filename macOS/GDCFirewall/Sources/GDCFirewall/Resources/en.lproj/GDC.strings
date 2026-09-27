@@ -29,6 +29,7 @@
 "Adaugă" = "Add";
 "Adaugă blocklist" = "Add blocklist";
 "Adaugă blocklist…" = "Add blocklist…";
+"Adresa listei (URL)" = "List address (URL)";
 "Adresă" = "Address";
 "Aduce hărți și date de localizare." = "Fetches maps and location data.";
 "Aduce notificările din Mesaje, Mail și alte aplicații Apple." = "Delivers notifications from Messages, Mail and other Apple apps.";
@@ -145,6 +146,7 @@
 "Editează regula…" = "Edit Rule…";
 "Elimină" = "Remove";
 "Elimină filtrul de rețea, extensia, preferințele și jurnalele, apoi mută aplicația la Coș." = "Removes the network filter, the extension, preferences and logs, then moves the app to the Trash.";
+"Elimină lista %@" = "Remove the list %@";
 "Excepții (permise de tine)" = "Exceptions (allowed by you)";
 "Executabil lipsă" = "Missing Executable";
 "Executabilul nu mai există la calea din regulă. Folosește „Repară calea…” dacă l-ai mutat." = "The executable no longer exists at the rule's path. Use “Repair Path…” if you moved it.";

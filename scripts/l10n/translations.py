@@ -528,6 +528,12 @@ T.update({
 "Aplicația a fost mutată la Coș, dar aceste elemente nu au putut fi eliminate:\n%@": ("The app was moved to the Trash, but these items could not be removed:\n%@", "La app se movió a la Papelera, pero estos elementos no se pudieron eliminar:\n%@"),
 })
 
+# Lotul 2.4.0 — etichete de accesibilitate găsite la inspecția AX reală.
+T.update({
+"Elimină lista %@": ("Remove the list %@", "Eliminar la lista %@"),
+"Adresa listei (URL)": ("List address (URL)", "Dirección de la lista (URL)"),
+})
+
 import json as _json, subprocess as _sp, pathlib as _pl
 _root = _pl.Path(__file__).resolve().parents[2]
 _used = {_json.loads(l) for l in _sp.run([str(_root / "scripts/check-l10n.sh"), "--list"],

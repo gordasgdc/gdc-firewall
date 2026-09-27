@@ -29,6 +29,7 @@
 "Adaugă" = "Añadir";
 "Adaugă blocklist" = "Añadir lista de bloqueo";
 "Adaugă blocklist…" = "Añadir lista de bloqueo…";
+"Adresa listei (URL)" = "Dirección de la lista (URL)";
 "Adresă" = "Dirección";
 "Aduce hărți și date de localizare." = "Obtiene mapas y datos de ubicación.";
 "Aduce notificările din Mesaje, Mail și alte aplicații Apple." = "Entrega las notificaciones de Mensajes, Mail y otras apps de Apple.";
@@ -145,6 +146,7 @@
 "Editează regula…" = "Editar regla…";
 "Elimină" = "Eliminar";
 "Elimină filtrul de rețea, extensia, preferințele și jurnalele, apoi mută aplicația la Coș." = "Elimina el filtro de red, la extensión, las preferencias y los registros, y luego mueve la app a la Papelera.";
+"Elimină lista %@" = "Eliminar la lista %@";
 "Excepții (permise de tine)" = "Excepciones (permitidas por ti)";
 "Executabil lipsă" = "Ejecutable ausente";
 "Executabilul nu mai există la calea din regulă. Folosește „Repară calea…” dacă l-ai mutat." = "El ejecutable ya no existe en la ruta de la regla. Usa «Reparar ruta…» si lo moviste.";
